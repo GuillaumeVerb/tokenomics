@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "tokenomics-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -7,29 +7,46 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "start": "vite"
+    "start": "vite",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,md}\"",
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@headlessui/react": "^1.7.17",
+    "@tanstack/react-query": "^4.35.3",
     "axios": "^1.5.0",
+    "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
+    "plotly.js-dist-min": "^2.26.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-query": "^3.39.3",
+    "react-plotly.js": "^2.6.0",
     "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
-    "@types/node": "^22.10.10",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
-    "@types/react-query": "^1.2.8",
+    "@types/react-plotly.js": "^2.6.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
     "@vitejs/plugin-react": "^4.0.3",
     "autoprefixer": "^10.4.15",
+    "eslint": "^8.49.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
     "postcss": "^8.4.29",
+    "prettier": "^3.0.3",
     "tailwindcss": "^3.3.3",
     "typescript": "^5.0.2",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "vitest": "^0.34.4"
   }
 }

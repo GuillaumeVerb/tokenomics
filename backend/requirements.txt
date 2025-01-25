@@ -1,33 +1,22 @@
-# Web Framework
-Flask==2.3.3
+# Web Framework et ASGI server
 fastapi==0.104.1
 uvicorn==0.24.0
 gunicorn==21.2.0
 
+# Data Processing & Visualization
+pandas==2.1.1
+plotly==5.17.0
+prophet==1.1.4
+
 # Database
 pymongo==4.5.0
-motor==3.3.1
 
-# Data Processing & Analysis
-pandas==2.1.1
-numpy==1.26.0
-prophet==1.1.4
-plotly==5.17.0
-
-# API & Authentication
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-python-multipart==0.0.6
+# API & Validation
 pydantic==2.4.2
 requests==2.31.0
-pycoingecko==3.1.0
 
-# Environment & Utils
-python-dotenv==1.0.0
-pytest==7.4.2
-black==23.9.1
-isort==5.12.0
-flake8==6.1.0
-
-# Heroku
-psycopg2-binary==2.9.9 
+# Pour ajouter SQLAlchemy, décommenter les lignes suivantes :
+# sqlalchemy==2.0.23
+# psycopg2-binary==2.9.9  # Pour PostgreSQL
+# alembic==1.12.1        # Pour les migrations
+# python-dotenv==1.0.0   # Pour les variables d'environnement 
