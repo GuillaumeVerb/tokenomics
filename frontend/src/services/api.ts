@@ -59,4 +59,8 @@ export const simulationApi = {
     const response = await api.post<SimulationResponse>('/simulate/scenario', data)
     return response.data
   },
+  compareScenarios: async (scenarios: SimulationRequest[]): Promise<SimulationResponse[]> => {
+    const response = await api.post<SimulationResponse[]>('/simulate/compare', { scenarios })
+    return response.data
+  },
 } 

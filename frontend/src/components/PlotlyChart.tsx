@@ -12,65 +12,86 @@ interface TokenPoint {
   burned_supply: number
   staked_supply: number
   vested_supply: number
+  scenarioName?: string
 }
 
 interface PlotlyChartProps {
   data: TokenPoint[]
   timeStep: 'monthly' | 'yearly'
   className?: string
+  showScenarioNames?: boolean
 }
 
 export const PlotlyChart: React.FC<PlotlyChartProps> = ({
   data,
   timeStep,
   className = '',
+  showScenarioNames = false,
 }) => {
   const chartRef = React.useRef<HTMLDivElement>(null)
   const timeUnit = timeStep === 'monthly' ? 'Months' : 'Years'
-  const xData = data.map((point) => point.time)
 
-  const traces = [
-    {
-      name: 'Total Supply',
-      x: xData,
-      y: data.map((point) => point.total_supply),
-      type: 'scatter',
-      mode: 'lines',
-      line: { color: '#4F46E5' },
-    },
-    {
-      name: 'Circulating Supply',
-      x: xData,
-      y: data.map((point) => point.circulating_supply),
-      type: 'scatter',
-      mode: 'lines',
-      line: { color: '#10B981' },
-    },
-    {
-      name: 'Burned Supply',
-      x: xData,
-      y: data.map((point) => point.burned_supply),
-      type: 'scatter',
-      mode: 'lines',
-      line: { color: '#EF4444' },
-    },
-    {
-      name: 'Staked Supply',
-      x: xData,
-      y: data.map((point) => point.staked_supply),
-      type: 'scatter',
-      mode: 'lines',
-      line: { color: '#F59E0B' },
-    },
-    {
-      name: 'Vested Supply',
-      x: xData,
-      y: data.map((point) => point.vested_supply),
-      type: 'scatter',
-      mode: 'lines',
-      line: { color: '#6366F1' },
-    },
-  ]
+  const groupedData = React.useMemo(() => {
+    if (!showScenarioNames) {
+      return {
+        default: data,
+      }
+    }
+
+    return data.reduce<Record<string, TokenPoint[]>>((acc, point) => {
+      const name = point.scenarioName || 'default'
+      if (!acc[name]) {
+        acc[name] = []
+      }
+      acc[name].push(point)
+      return acc
+    }, {})
+  }, [data, showScenarioNames])
+
+  const traces = React.useMemo(() => {
+    return Object.entries(groupedData).flatMap(([scenarioName, points]) => [
+      {
+        name: `${scenarioName} - Total Supply`,
+        x: points.map((point) => point.time),
+        y: points.map((point) => point.total_supply),
+        type: 'scatter',
+        mode: 'lines',
+        line: { dash: 'solid' },
+      },
+      {
+        name: `${scenarioName} - Circulating Supply`,
+        x: points.map((point) => point.time),
+        y: points.map((point) => point.circulating_supply),
+        type: 'scatter',
+        mode: 'lines',
+        line: { dash: 'dot' },
+      },
+      {
+        name: `${scenarioName} - Burned Supply`,
+        x: points.map((point) => point.time),
+        y: points.map((point) => point.burned_supply),
+        type: 'scatter',
+        mode: 'lines',
+        line: { dash: 'dashdot' },
+      },
+      {
+        name: `${scenarioName} - Staked Supply`,
+        x: points.map((point) => point.time),
+        y: points.map((point) => point.staked_supply),
+        type: 'scatter',
+        mode: 'lines',
+        line: { dash: 'dash' },
+      },
+      {
+        name: `${scenarioName} - Vested Supply`,
+        x: points.map((point) => point.time),
+        y: points.map((point) => point.vested_supply),
+        type: 'scatter',
+        mode: 'lines',
+        line: { dash: 'longdash' },
+      },
+    ])
+  }, [groupedData])
 
   const layout = {
     title: 'Token Supply Evolution',

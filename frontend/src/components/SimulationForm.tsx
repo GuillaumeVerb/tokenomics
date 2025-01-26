@@ -2,59 +2,38 @@ import * as React from 'react'
 import { useForm, Controller, FieldValues } from 'react-hook-form'
 import { Button } from './Button'
 import { styles } from '../utils/styles'
-
-interface SimulationFormData {
-  initial_supply: number
-  time_step: 'monthly' | 'yearly'
-  duration: number
-  inflation_config: {
-    type: 'constant' | 'dynamic'
-    initial_rate: number
-    min_rate?: number
-    decay_rate?: number
-  }
-  burn_config: {
-    type: 'continuous' | 'event-based'
-    rate?: number
-    events?: Array<{
-      time: number
-      amount: number
-    }>
-  }
-  staking_config: {
-    enabled: boolean
-    target_rate?: number
-    reward_rate?: number
-    lock_duration?: number
-  }
-}
+import { SimulationRequest } from '../services/api'
 
 interface SimulationFormProps {
-  onSubmit: (data: SimulationFormData) => void
+  onSubmit: (data: SimulationRequest) => void
   isLoading?: boolean
+  initialValues?: SimulationRequest
+}
+
+const defaultValues: SimulationRequest = {
+  initial_supply: 1000000,
+  time_step: 'monthly',
+  duration: 12,
+  inflation_config: {
+    type: 'constant',
+    initial_rate: 5,
+  },
+  burn_config: {
+    type: 'continuous',
+    rate: 1,
+  },
+  staking_config: {
+    enabled: false,
+  },
 }
 
 export const SimulationForm: React.FC<SimulationFormProps> = ({
   onSubmit,
   isLoading = false,
+  initialValues = defaultValues,
 }) => {
-  const { control, handleSubmit, watch } = useForm<SimulationFormData>({
-    defaultValues: {
-      initial_supply: 1000000,
-      time_step: 'monthly',
-      duration: 12,
-      inflation_config: {
-        type: 'constant',
-        initial_rate: 5,
-      },
-      burn_config: {
-        type: 'continuous',
-        rate: 1,
-      },
-      staking_config: {
-        enabled: false,
-      },
-    },
+  const { control, handleSubmit, watch } = useForm<SimulationRequest>({
+    defaultValues: initialValues,
   })
 
   const inflationType = watch('inflation_config.type')

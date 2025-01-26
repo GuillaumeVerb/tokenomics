@@ -1,4 +1,5 @@
 import html2pdf from 'html2pdf.js'
+import type { Html2PdfOptions } from '../types/html2pdf'
 
 interface ExportToPDFOptions {
   filename?: string
@@ -16,12 +17,12 @@ export const exportToPDF = async (
     pageSize = 'a4',
   } = options
 
-  const opt = {
+  const opt: Html2PdfOptions = {
     margin,
     filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: pageSize, orientation: 'landscape' },
+    jsPDF: { unit: 'mm', format: pageSize, orientation: 'landscape' as const },
   }
 
   try {
