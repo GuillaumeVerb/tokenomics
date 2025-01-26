@@ -1,0 +1,118 @@
+{
+    "scenarios": [
+        {
+            "name": "Conservative Growth",
+            "initial_supply": 1000000,
+            "time_step": "monthly",
+            "duration": 24,
+            "inflation_config": {
+                "type": "dynamic",
+                "initial_rate": 5.0,
+                "min_rate": 2.0,
+                "decay_rate": 20.0
+            },
+            "burn_config": {
+                "type": "continuous",
+                "rate": 1.0
+            },
+            "vesting_config": {
+                "periods": [
+                    {
+                        "start_period": 0,
+                        "duration": 12,
+                        "amount": 200000,
+                        "cliff_duration": 3,
+                        "release_type": "linear"
+                    }
+                ]
+            },
+            "staking_config": {
+                "enabled": true,
+                "target_rate": 30.0,
+                "reward_rate": 8.0,
+                "lock_duration": 3
+            }
+        },
+        {
+            "name": "Aggressive Growth",
+            "initial_supply": 1000000,
+            "time_step": "monthly",
+            "duration": 24,
+            "inflation_config": {
+                "type": "dynamic",
+                "initial_rate": 10.0,
+                "min_rate": 5.0,
+                "decay_rate": 10.0
+            },
+            "burn_config": {
+                "type": "event-based",
+                "events": [
+                    {
+                        "period": 6,
+                        "amount": 50000
+                    },
+                    {
+                        "period": 12,
+                        "amount": 75000
+                    }
+                ]
+            },
+            "vesting_config": {
+                "periods": [
+                    {
+                        "start_period": 0,
+                        "duration": 18,
+                        "amount": 300000,
+                        "cliff_duration": 0,
+                        "release_type": "exponential"
+                    }
+                ]
+            },
+            "staking_config": {
+                "enabled": true,
+                "target_rate": 50.0,
+                "reward_rate": 15.0,
+                "lock_duration": 6
+            }
+        },
+        {
+            "name": "Balanced Approach",
+            "initial_supply": 1000000,
+            "time_step": "monthly",
+            "duration": 24,
+            "inflation_config": {
+                "type": "halving",
+                "initial_rate": 8.0,
+                "halving_period": 12
+            },
+            "burn_config": {
+                "type": "continuous",
+                "rate": 2.0
+            },
+            "vesting_config": {
+                "periods": [
+                    {
+                        "start_period": 0,
+                        "duration": 24,
+                        "amount": 250000,
+                        "cliff_duration": 6,
+                        "release_type": "linear"
+                    }
+                ]
+            },
+            "staking_config": {
+                "enabled": true,
+                "target_rate": 40.0,
+                "reward_rate": 10.0,
+                "lock_duration": 4
+            }
+        }
+    ],
+    "return_combined_graph": true,
+    "metrics_to_graph": [
+        "total_supply",
+        "circulating_supply",
+        "staked_amount",
+        "locked_amount"
+    ]
+} 
