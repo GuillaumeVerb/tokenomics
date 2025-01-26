@@ -16,19 +16,28 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          50: '#eef9ff',
+          100: '#dcf3ff',
+          200: '#b3e9ff',
+          300: '#75dbff',
+          400: '#2cc7ff',
+          500: '#00aeff',
+          600: '#0088df',
+          700: '#006db5',
+          800: '#005c95',
+          900: '#064b7b',
         },
         secondary: {
-          // Ajoutez votre palette de couleurs secondaire
+          50: '#f4f7f9',
+          100: '#e2e9ef',
+          200: '#c7d5e1',
+          300: '#a1b8cc',
+          400: '#7595b3',
+          500: '#577a9f',
+          600: '#476185',
+          700: '#3d506d',
+          800: '#36455c',
+          900: '#323d4f',
         },
       },
       spacing: {
@@ -38,6 +47,8 @@ export default {
       },
       fontFamily: {
         sans: ['Inter var', 'sans-serif'],
+        display: ['Lexend', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
       gridTemplateColumns: {
         'auto-fit': 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -47,7 +58,16 @@ export default {
         'spin-slow': 'spin 3s linear infinite',
         'bounce-slow': 'bounce 3s infinite',
       },
+      borderRadius: {
+        'xl': '1rem',
+        '2xl': '1.5rem',
+      },
+      boxShadow: {
+        'inner-lg': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
 } 

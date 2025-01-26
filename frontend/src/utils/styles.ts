@@ -5,10 +5,13 @@ export const styles = {
   },
   card: 'bg-white rounded-lg shadow-md p-6',
   container: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
+  input: 'block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm',
+  select: 'block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm',
+  checkbox: 'h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500',
   heading: {
-    h1: 'text-3xl font-bold text-gray-900',
-    h2: 'text-2xl font-semibold text-gray-900',
-    h3: 'text-xl font-semibold text-gray-900',
+    h1: 'text-3xl font-bold text-gray-900 sm:text-4xl',
+    h2: 'text-2xl font-bold text-gray-900',
+    h3: 'text-lg font-medium text-gray-900',
   },
 } as const
 
