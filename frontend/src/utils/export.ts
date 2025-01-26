@@ -1,10 +1,28 @@
 import html2pdf from 'html2pdf.js'
-import type { Html2PdfOptions } from '../types/html2pdf'
 
 interface ExportToPDFOptions {
   filename?: string
   margin?: number
   pageSize?: string
+}
+
+interface Html2PdfOptions {
+  margin?: number
+  filename?: string
+  image?: {
+    type?: string
+    quality?: number
+  }
+  html2canvas?: {
+    scale?: number
+    [key: string]: any
+  }
+  jsPDF?: {
+    unit?: string
+    format?: string
+    orientation?: 'portrait' | 'landscape'
+    [key: string]: any
+  }
 }
 
 export const exportToPDF = async (

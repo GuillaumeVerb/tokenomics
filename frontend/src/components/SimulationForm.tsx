@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useForm, Controller, FieldValues } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { Button } from './Button'
 import { styles } from '../utils/styles'
 import { SimulationRequest } from '../services/api'
