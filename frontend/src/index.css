@@ -1,3 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities; 
+/* postcss-preset-env stage 1 */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Custom styles */
+html {
+  font-feature-settings: 'kern';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: theme('colors.gray.50');
+}
+
+/* Global utility classes are defined in utils/styles.ts */ 
