@@ -1,6 +1,7 @@
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.responses import JSONResponse
 import json
 import logging
 from datetime import datetime
@@ -44,7 +45,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 class JWTAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Skip auth for non-protected routes
-        if request.url.path in ["/docs", "/redoc", "/openapi.json"]:
+        if request.url.path in ["/docs", "/redoc", "/openapi.json", "/health"]:
             return await call_next(request)
             
         try:
@@ -63,7 +64,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
                 payload = jwt.decode(
                     token,
                     settings.JWT_SECRET,
-                    algorithms=["HS256"]
+                    algorithms=[settings.JWT_ALGORITHM]
                 )
                 # Add user info to request state
                 request.state.user = payload

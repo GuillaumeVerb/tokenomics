@@ -1,27 +1,29 @@
-from flask import Flask
-from flask_pymongo import PyMongo
-from flask_cors import CORS
-from pycoingecko import CoinGeckoAPI
-import os
-from dotenv import load_dotenv
+"""
+Package principal de l'application.
+"""
 
-mongo = PyMongo()
-cg = CoinGeckoAPI()
+from fastapi import FastAPI
+from .middleware import setup_middlewares
+from .api_docs import configure_openapi_docs
 
-def create_app():
-    load_dotenv()
+def create_app() -> FastAPI:
+    """Crée et configure l'application FastAPI."""
+    app = FastAPI()
     
-    app = Flask(__name__)
-    CORS(app)
+    # Configure middlewares
+    setup_middlewares(app)
     
-    # Configuration
-    app.config["MONGO_URI"] = os.getenv("MONGODB_URI", "mongodb://localhost:27017/tokenomics")
+    # Configure OpenAPI documentation
+    configure_openapi_docs(app)
     
-    # Initialize extensions
-    mongo.init_app(app)
+    # Import and include routers
+    from .routers import simulation
+    app.include_router(simulation.router, prefix="/simulate", tags=["Simulation"])
     
-    # Register blueprints
-    from app.routes.market_data import market_data_bp
-    app.register_blueprint(market_data_bp, url_prefix='/api/market-data')
+    @app.get("/health")
+    async def health_check():
+        return {"status": "healthy"}
     
-    return app 
+    return app
+
+app = create_app() 

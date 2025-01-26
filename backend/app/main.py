@@ -1,26 +1,18 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.routes import simulation
+from .middleware import setup_middlewares
+from .api_docs import configure_openapi_docs
 
-app = FastAPI(
-    title="Tokenomics API",
-    description="API for tokenomics simulations and analysis",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
-)
+app = FastAPI()
 
-# CORS configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Configure middlewares
+setup_middlewares(app)
 
-# Include routers
-app.include_router(simulation.router)
+# Configure OpenAPI documentation
+configure_openapi_docs(app)
+
+# Import and include routers
+from .routers import simulation
+app.include_router(simulation.router, prefix="/simulate", tags=["Simulation"])
 
 @app.get("/health")
 async def health_check():
