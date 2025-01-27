@@ -1,6 +1,6 @@
 # Web Framework et ASGI server
-fastapi==0.104.1
-uvicorn==0.24.0
+fastapi>=0.109.0
+uvicorn>=0.27.0
 gunicorn==21.2.0
 
 # Data Processing & Visualization
@@ -9,14 +9,20 @@ plotly==5.17.0
 prophet==1.1.4
 
 # Database
-pymongo==4.5.0
+pymongo>=4.6.1
 
 # API & Validation
-pydantic==2.4.2
-requests==2.31.0
+pydantic>=2.5.3
+requests>=2.31.0
 
 # Pour ajouter SQLAlchemy, décommenter les lignes suivantes :
 # sqlalchemy==2.0.23
 # psycopg2-binary==2.9.9  # Pour PostgreSQL
 # alembic==1.12.1        # Pour les migrations
-# python-dotenv==1.0.0   # Pour les variables d'environnement 
+python-dotenv>=1.0.0
+
+# Test and Formatting
+pytest>=7.4.4
+black>=24.1.1
+isort>=5.13.2
+flake8>=7.0.0 
