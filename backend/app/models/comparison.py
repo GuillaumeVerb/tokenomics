@@ -1,73 +1,56 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import List, Optional
+from pydantic import Field
 from decimal import Decimal
 import plotly.graph_objects as go
+from .base import BaseTokenomicsModel
+from .tokenomics import ScenarioRequest
 
 from .scenario import (
-    ScenarioRequest, ScenarioResponse, 
+    ScenarioResponse, 
     PeriodMetrics, ScenarioSummary
 )
 
 class NamedScenarioRequest(ScenarioRequest):
-    name: str = Field(..., description="Unique name for the scenario")
+    """A scenario request with a name for comparison purposes."""
+    name: str = Field(..., description="Name of the scenario for comparison")
 
-class ComparisonRequest(BaseModel):
+class ComparisonRequest(BaseTokenomicsModel):
+    """Request model for comparing multiple tokenomics scenarios."""
     scenarios: List[NamedScenarioRequest] = Field(
         ...,
-        min_items=2,
-        max_items=5,
+        min_length=2,
+        max_length=5,
         description="List of scenarios to compare (2-5 scenarios)"
     )
     return_combined_graph: bool = Field(
         False,
-        description="Whether to return a combined Plotly graph"
+        description="Whether to return a combined graph of all scenarios"
     )
     metrics_to_graph: Optional[List[str]] = Field(
-        ["total_supply", "circulating_supply", "staked_amount"],
-        description="Metrics to include in the combined graph"
-    )
-
-class ScenarioComparison(BaseModel):
-    name: str = Field(..., description="Scenario name")
-    timeline: List[PeriodMetrics] = Field(..., description="Period by period metrics")
-    summary: ScenarioSummary = Field(..., description="Scenario summary metrics")
-
-class ComparisonSummary(BaseModel):
-    supply_range: Dict[str, Decimal] = Field(
-        ..., 
-        description="Final supply range across scenarios"
-    )
-    minted_range: Dict[str, Decimal] = Field(
-        ..., 
-        description="Total minted range across scenarios"
-    )
-    burned_range: Dict[str, Decimal] = Field(
-        ..., 
-        description="Total burned range across scenarios"
-    )
-    staked_range: Dict[str, Decimal] = Field(
-        ..., 
-        description="Final staked amount range across scenarios"
-    )
-    supply_change_range: Dict[str, Decimal] = Field(
-        ..., 
-        description="Supply change % range across scenarios"
-    )
-
-class PlotlyGraph(BaseModel):
-    data: List[dict] = Field(..., description="Plotly graph data")
-    layout: dict = Field(..., description="Plotly graph layout")
-
-class ComparisonResponse(BaseModel):
-    scenarios: List[ScenarioComparison] = Field(
-        ..., 
-        description="Results for each scenario"
-    )
-    comparison_summary: ComparisonSummary = Field(
-        ..., 
-        description="Summary of ranges across scenarios"
-    )
-    combined_graph: Optional[PlotlyGraph] = Field(
         None,
-        description="Combined Plotly graph if requested"
-    ) 
+        description="List of metrics to include in the graph (e.g., ['circulating_supply', 'staked_supply'])"
+    )
+
+class ScenarioComparison(BaseTokenomicsModel):
+    """Comparison results for a single scenario."""
+    name: str = Field(..., description="Name of the scenario")
+    timeline_metrics: List[dict] = Field(..., description="Timeline metrics for the scenario")
+    summary_metrics: dict = Field(..., description="Summary metrics for the scenario")
+
+class ComparisonSummary(BaseTokenomicsModel):
+    """Summary of ranges for various metrics across all scenarios."""
+    supply_range: tuple[float, float] = Field(..., description="Range of total supply values")
+    minted_range: tuple[float, float] = Field(..., description="Range of total minted tokens")
+    burned_range: tuple[float, float] = Field(..., description="Range of total burned tokens")
+    staked_range: tuple[float, float] = Field(..., description="Range of total staked tokens")
+
+class PlotlyGraph(BaseTokenomicsModel):
+    """Plotly graph data and layout."""
+    data: List[dict] = Field(..., description="Graph data in Plotly format")
+    layout: dict = Field(..., description="Graph layout in Plotly format")
+
+class ComparisonResponse(BaseTokenomicsModel):
+    """Response model for scenario comparison."""
+    scenarios: List[ScenarioComparison] = Field(..., description="Results for each scenario")
+    summary: ComparisonSummary = Field(..., description="Summary of ranges across all scenarios")
+    combined_graph: Optional[PlotlyGraph] = Field(None, description="Combined graph of all scenarios") 

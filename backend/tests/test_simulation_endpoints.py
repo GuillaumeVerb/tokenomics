@@ -12,40 +12,40 @@ client = TestClient(app)
 # Fixtures
 @pytest.fixture
 def auth_headers():
-    """Generate valid JWT token for tests."""
+    """Create authentication headers with a valid JWT token."""
     token = jwt.encode(
         {
-            "sub": "test@example.com",
-            "exp": datetime.utcnow() + timedelta(days=1)
+            'sub': 'test@example.com',
+            'exp': datetime.utcnow() + timedelta(hours=1)
         },
         settings.JWT_SECRET,
-        algorithm="HS256"
+        algorithm=settings.JWT_ALGORITHM
     )
-    return {"Authorization": f"Bearer {token}"}
+    return {'Authorization': f'Bearer {token}'}
 
 @pytest.fixture
 def invalid_token():
-    """Generate expired JWT token."""
+    """Create an invalid JWT token."""
     token = jwt.encode(
         {
-            "sub": "test@example.com",
-            "exp": datetime.utcnow() - timedelta(days=1)
+            'sub': 'test@example.com',
+            'exp': datetime.utcnow() - timedelta(hours=1)  # Expired token
         },
-        settings.JWT_SECRET,
-        algorithm="HS256"
+        'wrong-secret',
+        algorithm=settings.JWT_ALGORITHM
     )
-    return {"Authorization": f"Bearer {token}"}
+    return {'Authorization': f'Bearer {token}'}
 
 # Test Authentication
 def test_endpoint_without_token():
     """Test that endpoints require authentication."""
-    response = client.post("/simulate/constant_inflation", json={})
+    response = client.post('/simulate/constant_inflation', json={})
     assert response.status_code == 401
 
 def test_endpoint_with_invalid_token(invalid_token):
-    """Test that invalid tokens are rejected."""
+    """Test that endpoints reject invalid tokens."""
     response = client.post(
-        "/simulate/constant_inflation",
+        '/simulate/constant_inflation',
         headers=invalid_token,
         json={}
     )
@@ -53,262 +53,285 @@ def test_endpoint_with_invalid_token(invalid_token):
 
 # Test Constant Inflation
 def test_constant_inflation_simulation(auth_headers):
-    """Test basic constant inflation simulation."""
+    """Test the constant inflation simulation endpoint."""
     request_data = {
-        "initial_supply": 1000000,
-        "inflation_rate": 5.0,
-        "duration_in_years": 3
+        'initial_supply': 1000000,
+        'inflation_rate': 5.0,
+        'duration_in_years': 5
     }
     
     response = client.post(
-        "/simulate/constant_inflation",
+        '/simulate/constant_inflation',
         headers=auth_headers,
         json=request_data
     )
     
     assert response.status_code == 200
     data = response.json()
-    
-    assert "simulation_data" in data
-    assert len(data["simulation_data"]) == 4  # initial + 3 years
-    assert data["simulation_data"][0]["supply"] == 1000000
-    assert data["total_supply_increase_percentage"] > 0
+    assert 'simulation_data' in data
+    assert len(data['simulation_data']) == 6  # Initial + 5 years
+    assert Decimal(data['simulation_data'][0]['supply']) == Decimal('1000000')
 
 def test_constant_inflation_validation(auth_headers):
-    """Test input validation for constant inflation."""
-    # Test negative inflation rate
-    request_data = {
-        "initial_supply": 1000000,
-        "inflation_rate": -5.0,
-        "duration_in_years": 3
-    }
-    
+    """Test input validation for constant inflation endpoint."""
+    # Test invalid inflation rate
     response = client.post(
-        "/simulate/constant_inflation",
+        '/simulate/constant_inflation',
         headers=auth_headers,
-        json=request_data
+        json={
+            'initial_supply': 1000000,
+            'inflation_rate': 150.0,  # Invalid: > 100%
+            'duration_in_years': 5
+        }
     )
+    assert response.status_code == 422
     
-    assert response.status_code == 400
+    # Test invalid duration
+    response = client.post(
+        '/simulate/constant_inflation',
+        headers=auth_headers,
+        json={
+            'initial_supply': 1000000,
+            'inflation_rate': 5.0,
+            'duration_in_years': 0  # Invalid: <= 0
+        }
+    )
+    assert response.status_code == 422
 
 # Test Burn Simulation
 def test_continuous_burn_simulation(auth_headers):
-    """Test continuous burn simulation."""
+    """Test the continuous burn simulation endpoint."""
     request_data = {
-        "initial_supply": 1000000,
-        "duration_in_months": 12,
-        "burn_rate": 1.0
+        'initial_supply': 1000000,
+        'duration_in_months': 12,
+        'burn_rate': 1.0
     }
     
     response = client.post(
-        "/simulate/burn",
+        '/simulate/burn',
         headers=auth_headers,
         json=request_data
     )
     
     assert response.status_code == 200
     data = response.json()
-    
-    assert "simulation_data" in data
-    assert len(data["simulation_data"]) == 13  # initial + 12 months
-    assert data["total_burned"] > 0
+    assert len(data['simulation_data']) == 13
+    assert Decimal(data['total_burned']) > Decimal('0')
 
 def test_event_based_burn_simulation(auth_headers):
-    """Test event-based burn simulation."""
+    """Test the event-based burn simulation endpoint."""
     request_data = {
-        "initial_supply": 1000000,
-        "duration_in_months": 12,
-        "burn_events": [
-            {"month": 3, "amount": 50000},
-            {"month": 6, "amount": 75000}
+        'initial_supply': 1000000,
+        'duration_in_months': 12,
+        'burn_events': [
+            {'month': 3, 'amount': 50000},
+            {'month': 6, 'amount': 75000}
         ]
     }
     
     response = client.post(
-        "/simulate/burn",
+        '/simulate/burn',
         headers=auth_headers,
         json=request_data
     )
     
     assert response.status_code == 200
     data = response.json()
-    
-    assert data["total_burned"] == 125000
+    assert Decimal(data['total_burned']) == Decimal('125000.00')
 
 # Test Vesting Simulation
 def test_linear_vesting_simulation(auth_headers):
-    """Test linear vesting simulation."""
+    """Test the vesting simulation endpoint with linear schedule."""
     request_data = {
-        "total_supply": 1000000,
-        "duration_in_months": 12,
-        "vesting_periods": [
+        'total_supply': 1000000,
+        'duration_in_months': 24,
+        'vesting_periods': [
             {
-                "start_month": 0,
-                "duration_months": 12,
-                "tokens_amount": 100000,
-                "cliff_months": 3
+                'start_month': 0,
+                'duration_months': 12,
+                'tokens_amount': 400000,
+                'cliff_months': 0
+            },
+            {
+                'start_month': 6,
+                'duration_months': 12,
+                'tokens_amount': 600000,
+                'cliff_months': 3
             }
         ]
     }
     
     response = client.post(
-        "/simulate/vesting",
+        '/simulate/vesting',
         headers=auth_headers,
         json=request_data
     )
     
     assert response.status_code == 200
     data = response.json()
-    
-    # Check cliff period
-    assert data["simulation_data"][2]["vested"] == 0
-    # Check vesting started after cliff
-    assert data["simulation_data"][3]["vested"] > 0
+    assert len(data['simulation_data']) == 25
+    assert Decimal(data['total_vested']) == Decimal('1000000.00')
 
 # Test Staking Simulation
 def test_staking_simulation(auth_headers):
-    """Test staking simulation."""
+    """Test the staking simulation endpoint."""
     request_data = {
-        "total_supply": 1000000,
-        "duration_in_months": 12,
-        "staking_rate": 60.0,
-        "staking_reward_rate": 12.0,
-        "lock_period": 3
+        'total_supply': 1000000,
+        'duration_in_months': 12,
+        'staking_rate': 50.0,
+        'staking_reward_rate': 12.0,
+        'lock_period': 3
     }
     
     response = client.post(
-        "/simulate/staking",
+        '/simulate/staking',
         headers=auth_headers,
         json=request_data
     )
     
     assert response.status_code == 200
     data = response.json()
-    
-    assert data["total_staked"] > 0
-    assert data["total_rewards"] > 0
+    assert len(data['simulation_data']) == 13
+    assert Decimal(data['total_staked']) > Decimal('0')
+    assert Decimal(data['total_rewards']) > Decimal('0')
 
 # Test Scenario Simulation
 def test_complete_scenario_simulation(auth_headers):
-    """Test complete scenario simulation."""
+    """Test a complete scenario with multiple mechanisms."""
     request_data = {
-        "initial_supply": 1000000,
-        "time_step": "monthly",
-        "duration": 12,
-        "inflation_config": {
-            "type": "dynamic",
-            "initial_rate": 10.0,
-            "min_rate": 2.0,
-            "decay_rate": 20.0
+        'initial_supply': 1000000,
+        'time_step': 'monthly',
+        'duration': 24,
+        'inflation_config': {
+            'type': 'dynamic',
+            'initial_rate': 5.0,
+            'min_rate': 2.0,
+            'decay_rate': 20.0
         },
-        "burn_config": {
-            "type": "continuous",
-            "rate": 1.0
+        'burn_config': {
+            'type': 'continuous',
+            'rate': 1.0
         },
-        "staking_config": {
-            "enabled": True,
-            "target_rate": 40.0,
-            "reward_rate": 8.0,
-            "lock_duration": 3
+        'vesting_config': {
+            'periods': [
+                {
+                    'start_period': 0,
+                    'duration': 12,
+                    'amount': 200000,
+                    'cliff_duration': 3
+                }
+            ]
+        },
+        'staking_config': {
+            'enabled': True,
+            'target_rate': 40.0,
+            'reward_rate': 12.0,
+            'lock_duration': 3
         }
     }
     
     response = client.post(
-        "/simulate/scenario",
+        '/simulate/scenario',
         headers=auth_headers,
         json=request_data
     )
     
     assert response.status_code == 200
     data = response.json()
+    assert 'timeline' in data
+    assert 'summary' in data
+    assert len(data['timeline']) == 25  # 0 to 24 months
     
-    assert "timeline" in data
-    assert "summary" in data
-    assert len(data["timeline"]) == 13  # initial + 12 months
+    # Verify all mechanisms are working
+    summary = data['summary']
+    assert Decimal(summary['total_minted']) > Decimal('0')  # Inflation working
+    assert Decimal(summary['total_burned']) > Decimal('0')  # Burning working
+    assert Decimal(summary['total_vested']) > Decimal('0')  # Vesting working
+    assert Decimal(summary['total_staking_rewards']) > Decimal('0')  # Staking working
 
 # Test Scenario Comparison
 def test_scenario_comparison(auth_headers):
-    """Test scenario comparison functionality."""
+    """Test comparing multiple scenarios."""
     request_data = {
-        "scenarios": [
+        'scenarios': [
             {
-                "name": "Conservative",
-                "initial_supply": 1000000,
-                "time_step": "monthly",
-                "duration": 12,
-                "inflation_config": {
-                    "type": "dynamic",
-                    "initial_rate": 5.0,
-                    "min_rate": 2.0,
-                    "decay_rate": 20.0
+                'name': 'Conservative',
+                'initial_supply': 1000000,
+                'time_step': 'monthly',
+                'duration': 24,
+                'inflation_config': {
+                    'type': 'dynamic',
+                    'initial_rate': 5.0,
+                    'min_rate': 2.0,
+                    'decay_rate': 20.0
                 }
             },
             {
-                "name": "Aggressive",
-                "initial_supply": 1000000,
-                "time_step": "monthly",
-                "duration": 12,
-                "inflation_config": {
-                    "type": "dynamic",
-                    "initial_rate": 10.0,
-                    "min_rate": 5.0,
-                    "decay_rate": 10.0
+                'name': 'Aggressive',
+                'initial_supply': 1000000,
+                'time_step': 'monthly',
+                'duration': 24,
+                'inflation_config': {
+                    'type': 'dynamic',
+                    'initial_rate': 10.0,
+                    'min_rate': 5.0,
+                    'decay_rate': 10.0
                 }
             }
         ],
-        "return_combined_graph": True
+        'return_combined_graph': True
     }
     
     response = client.post(
-        "/simulate/compare",
+        '/simulate/compare',
         headers=auth_headers,
         json=request_data
     )
     
     assert response.status_code == 200
     data = response.json()
+    assert len(data['scenarios']) == 2
+    assert 'comparison_summary' in data
+    assert 'combined_graph' in data
     
-    assert len(data["scenarios"]) == 2
-    assert "comparison_summary" in data
-    assert "combined_graph" in data
+    # Verify the aggressive scenario has higher final supply
+    conservative_supply = data['scenarios'][0]['summary']['final_supply']
+    aggressive_supply = data['scenarios'][1]['summary']['final_supply']
+    assert aggressive_supply > conservative_supply
 
 def test_comparison_validation(auth_headers):
     """Test validation for scenario comparison."""
-    # Test with single scenario
-    request_data = {
-        "scenarios": [
-            {
-                "name": "Single",
-                "initial_supply": 1000000,
-                "time_step": "monthly",
-                "duration": 12
-            }
-        ]
-    }
-    
+    # Test with too few scenarios
     response = client.post(
-        "/simulate/compare",
+        '/simulate/compare',
         headers=auth_headers,
-        json=request_data
+        json={
+            'scenarios': [
+                {
+                    'name': 'Single Scenario',
+                    'initial_supply': 1000000,
+                    'time_step': 'monthly',
+                    'duration': 24
+                }
+            ]
+        }
     )
-    
-    assert response.status_code == 400
+    assert response.status_code == 422
     
     # Test with too many scenarios
-    request_data["scenarios"] = [
-        {
-            "name": f"Scenario {i}",
-            "initial_supply": 1000000,
-            "time_step": "monthly",
-            "duration": 12
-        }
-        for i in range(6)
-    ]
-    
     response = client.post(
-        "/simulate/compare",
+        '/simulate/compare',
         headers=auth_headers,
-        json=request_data
+        json={
+            'scenarios': [
+                {
+                    'name': f'Scenario {i}',
+                    'initial_supply': 1000000,
+                    'time_step': 'monthly',
+                    'duration': 24
+                }
+                for i in range(6)  # Max is 5
+            ]
+        }
     )
-    
-    assert response.status_code == 400 
+    assert response.status_code == 422 

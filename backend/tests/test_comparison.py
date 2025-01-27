@@ -3,10 +3,11 @@ from decimal import Decimal
 from fastapi.testclient import TestClient
 from app.main import app
 from app.models.comparison import ComparisonRequest, NamedScenarioRequest
+from tests.conftest import auth_headers
 
 client = TestClient(app)
 
-def test_compare_scenarios():
+def test_compare_scenarios(auth_headers):
     """Test basic scenario comparison functionality."""
     request = ComparisonRequest(
         scenarios=[
@@ -34,7 +35,7 @@ def test_compare_scenarios():
         return_combined_graph=False
     )
     
-    response = client.post("/simulate/compare", json=request.dict())
+    response = client.post("/simulate/compare", headers=auth_headers, json=request.dict())
     assert response.status_code == 200
     
     data = response.json()
@@ -44,7 +45,7 @@ def test_compare_scenarios():
     assert "comparison_summary" in data
     assert data["combined_graph"] is None
 
-def test_compare_scenarios_with_graph():
+def test_compare_scenarios_with_graph(auth_headers):
     """Test scenario comparison with Plotly graph generation."""
     request = ComparisonRequest(
         scenarios=[
@@ -73,7 +74,7 @@ def test_compare_scenarios_with_graph():
         metrics_to_graph=["total_supply", "circulating_supply"]
     )
     
-    response = client.post("/simulate/compare", json=request.dict())
+    response = client.post("/simulate/compare", headers=auth_headers, json=request.dict())
     assert response.status_code == 200
     
     data = response.json()
@@ -82,7 +83,7 @@ def test_compare_scenarios_with_graph():
     assert "layout" in data["combined_graph"]
     assert len(data["combined_graph"]["data"]) == 4  # 2 metrics × 2 scenarios
 
-def test_compare_scenarios_validation():
+def test_compare_scenarios_validation(auth_headers):
     """Test input validation for scenario comparison."""
     # Test minimum number of scenarios
     request = ComparisonRequest(
@@ -98,7 +99,7 @@ def test_compare_scenarios_validation():
     )
     
     with pytest.raises(ValueError):
-        response = client.post("/simulate/compare", json=request.dict())
+        response = client.post("/simulate/compare", headers=auth_headers, json=request.dict())
     
     # Test maximum number of scenarios
     request = ComparisonRequest(
@@ -115,9 +116,9 @@ def test_compare_scenarios_validation():
     )
     
     with pytest.raises(ValueError):
-        response = client.post("/simulate/compare", json=request.dict())
+        response = client.post("/simulate/compare", headers=auth_headers, json=request.dict())
 
-def test_compare_complex_scenarios():
+def test_compare_complex_scenarios(auth_headers):
     """Test comparison of scenarios with multiple mechanisms."""
     request = ComparisonRequest(
         scenarios=[
@@ -169,7 +170,7 @@ def test_compare_complex_scenarios():
         return_combined_graph=True
     )
     
-    response = client.post("/simulate/compare", json=request.dict())
+    response = client.post("/simulate/compare", headers=auth_headers, json=request.dict())
     assert response.status_code == 200
     
     data = response.json()
@@ -193,7 +194,7 @@ def test_compare_complex_scenarios():
         "supply_change_range"
     ])
 
-def test_compare_scenarios_error_handling():
+def test_compare_scenarios_error_handling(auth_headers):
     """Test error handling in scenario comparison."""
     # Test invalid duration
     request = ComparisonRequest(
@@ -214,7 +215,7 @@ def test_compare_scenarios_error_handling():
         return_combined_graph=False
     )
     
-    response = client.post("/simulate/compare", json=request.dict())
+    response = client.post("/simulate/compare", headers=auth_headers, json=request.dict())
     assert response.status_code == 400
     
     # Test invalid inflation rate
@@ -240,5 +241,5 @@ def test_compare_scenarios_error_handling():
         return_combined_graph=False
     )
     
-    response = client.post("/simulate/compare", json=request.dict())
+    response = client.post("/simulate/compare", headers=auth_headers, json=request.dict())
     assert response.status_code == 400 

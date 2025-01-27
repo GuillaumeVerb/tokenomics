@@ -1,9 +1,10 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import Field, validator
 from typing import List, Optional, Literal
 from decimal import Decimal
 from datetime import datetime
+from .base import BaseTokenomicsModel
 
-class InflationConfig(BaseModel):
+class InflationConfig(BaseTokenomicsModel):
     type: Literal["constant", "dynamic", "halving"] = Field(
         ..., 
         description="Type of inflation mechanism"
@@ -32,11 +33,11 @@ class InflationConfig(BaseModel):
         description="Annual decay rate for dynamic inflation"
     )
 
-class BurnEvent(BaseModel):
+class BurnEvent(BaseTokenomicsModel):
     period: int = Field(..., ge=0, description="Period when burn occurs")
     amount: Decimal = Field(..., gt=0, description="Amount to burn")
     
-class BurnConfig(BaseModel):
+class BurnConfig(BaseTokenomicsModel):
     type: Literal["continuous", "event-based"] = Field(
         ..., 
         description="Type of burn mechanism"
@@ -60,7 +61,7 @@ class BurnConfig(BaseModel):
             raise ValueError('Event-based burn requires events list')
         return v
 
-class VestingPeriod(BaseModel):
+class VestingPeriod(BaseTokenomicsModel):
     start_period: int = Field(..., ge=0, description="Start period of vesting")
     duration: int = Field(..., gt=0, description="Duration of vesting")
     amount: Decimal = Field(..., gt=0, description="Amount of tokens to vest")
@@ -70,14 +71,14 @@ class VestingPeriod(BaseModel):
         description="Type of token release schedule"
     )
 
-class VestingConfig(BaseModel):
+class VestingConfig(BaseTokenomicsModel):
     periods: List[VestingPeriod] = Field(
         ...,
         min_items=1,
         description="List of vesting periods"
     )
 
-class StakingConfig(BaseModel):
+class StakingConfig(BaseTokenomicsModel):
     enabled: bool = Field(..., description="Whether staking is enabled")
     target_rate: Decimal = Field(
         ...,
@@ -97,7 +98,7 @@ class StakingConfig(BaseModel):
         description="Lock duration for staked tokens"
     )
 
-class ScenarioRequest(BaseModel):
+class ScenarioRequest(BaseTokenomicsModel):
     initial_supply: Decimal = Field(
         ...,
         gt=0,
@@ -130,7 +131,7 @@ class ScenarioRequest(BaseModel):
         description="Staking mechanism configuration"
     )
 
-class PeriodMetrics(BaseModel):
+class PeriodMetrics(BaseTokenomicsModel):
     period: int = Field(..., description="Period number")
     total_supply: Decimal = Field(..., description="Total token supply")
     circulating_supply: Decimal = Field(..., description="Circulating supply")
@@ -141,7 +142,7 @@ class PeriodMetrics(BaseModel):
     staking_rewards: Decimal = Field(..., description="Staking rewards distributed")
     locked_amount: Decimal = Field(..., description="Tokens locked (vesting + staking)")
 
-class ScenarioSummary(BaseModel):
+class ScenarioSummary(BaseTokenomicsModel):
     final_supply: Decimal = Field(..., description="Final token supply")
     total_minted: Decimal = Field(..., description="Total tokens minted")
     total_burned: Decimal = Field(..., description="Total tokens burned")
@@ -151,6 +152,6 @@ class ScenarioSummary(BaseModel):
     current_locked: Decimal = Field(..., description="Currently locked tokens")
     supply_change_percentage: Decimal = Field(..., description="Total supply change (%)")
 
-class ScenarioResponse(BaseModel):
+class ScenarioResponse(BaseTokenomicsModel):
     timeline: List[PeriodMetrics] = Field(..., description="Period by period metrics")
     summary: ScenarioSummary = Field(..., description="Scenario summary metrics") 
