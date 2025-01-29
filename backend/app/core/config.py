@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, Union
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # Application Settings
     ENVIRONMENT: str = "development"
+    DEBUG: bool = True
     
     # JWT Settings
     JWT_SECRET: str
@@ -16,10 +17,22 @@ class Settings(BaseSettings):
     # Slack Settings
     SLACK_API_TOKEN: Optional[str] = None
     
+    # Logging Settings
+    LOG_LEVEL: str = "INFO"
+    LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    LOG_FILE: Optional[str] = None
+    
     # Add validation for Slack token
     @property
     def is_slack_configured(self) -> bool:
         return bool(self.SLACK_API_TOKEN and self.SLACK_API_TOKEN.startswith("xoxb-"))
+    
+    # MongoDB settings
+    MONGODB_URL: str = "mongodb://localhost:27017"
+    MONGODB_DB_NAME: str = "tokenomics"
+    
+    # CoinGecko settings
+    COINGECKO_API_KEY: Union[str, None] = None  # Optional, can be None for public API
     
     model_config = SettingsConfigDict(
         env_file=".env",

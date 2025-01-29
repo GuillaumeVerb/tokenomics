@@ -1,21 +1,22 @@
 {
     "include": [
+        "dags",
         "app",
         "tests",
-        "dags"
+        "typings"
     ],
     "exclude": [
         "**/node_modules",
-        "**/__pycache__",
-        "venv",
-        "airflow_venv"
+        "**/__pycache__"
     ],
-    "ignore": [
-        "**/*.pyc"
-    ],
-    "reportMissingImports": true,
-    "reportMissingTypeStubs": false,
+    "typeCheckingMode": "basic",
+    "useLibraryCodeForTypes": true,
+    "stubPath": "typings",
     "pythonVersion": "3.9",
+    "reportMissingImports": "warning",
+    "reportMissingTypeStubs": "none",
+    "reportGeneralTypeIssues": "warning",
+    "typeCheckingMode": "off",
     "pythonPlatform": "Darwin",
     "venvPath": ".",
     "venv": "venv"

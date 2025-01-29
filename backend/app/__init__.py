@@ -1,13 +1,19 @@
 """
-Package principal de l'application.
+Main application package.
 """
 
 from fastapi import FastAPI
-from .middleware import setup_middlewares
+
 from .api_docs import configure_openapi_docs
+from .core.services import (  # Import services to ensure they are initialized
+    cg,
+    mongo_db,
+)
+from .middleware import setup_middlewares
+
 
 def create_app() -> FastAPI:
-    """Crée et configure l'application FastAPI."""
+    """Create and configure the FastAPI application."""
     app = FastAPI()
     
     # Configure middlewares
@@ -22,7 +28,15 @@ def create_app() -> FastAPI:
     
     @app.get("/health")
     async def health_check():
-        return {"status": "healthy"}
+        """Health check endpoint that also verifies database connection."""
+        try:
+            # Verify MongoDB connection
+            mongo_db.command('ping')
+            # Verify CoinGecko API
+            cg.ping()
+            return {"status": "healthy", "services": {"mongodb": "connected", "coingecko": "connected"}}
+        except Exception as e:
+            return {"status": "unhealthy", "error": str(e)}
     
     return app
 

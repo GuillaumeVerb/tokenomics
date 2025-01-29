@@ -1,0 +1,1 @@
+"""Type stubs for airflow.providers.http.""" 

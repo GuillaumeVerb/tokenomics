@@ -1,0 +1,23 @@
+"""Type stubs for pandas."""
+from typing import Any, Dict, List, Optional, Sequence, TypeVar, Union, overload
+
+T = TypeVar('T')
+
+class DataFrame:
+    def __init__(self, data: Optional[Union[Dict[str, List[Any]], List[Dict[str, Any]], Sequence[Any]]] = None, **kwargs: Any) -> None: ...
+    
+    def __getitem__(self, key: Union[str, List[str], slice]) -> Union["DataFrame", Any]: ...
+    def __setitem__(self, key: str, value: Any) -> None: ...
+    
+    @overload
+    def to_dict(self, orient: str = "dict") -> Dict[str, Any]: ...
+    
+    @overload
+    def to_dict(self, orient: str = "records") -> List[Dict[str, Any]]: ...
+    
+    def to_dict(self, orient: str = "dict") -> Union[Dict[str, Any], List[Dict[str, Any]]]: ...
+
+def DataFrame(
+    data: Optional[Union[Dict[str, Any], List[Dict[str, Any]], Sequence[Any]]] = None,
+    **kwargs: Any,
+) -> DataFrame: ... 

@@ -1,8 +1,10 @@
-from app import cg, mongo
 from datetime import datetime
 
-def get_token_market_data(token_id):
-    # Récupérer les données via CoinGecko
+from ..core.services import cg, mongo_db
+
+
+def get_token_market_data(token_id: str):
+    # Get data from CoinGecko
     market_data = cg.get_coin_by_id(
         id=token_id,
         localization=False,
@@ -13,7 +15,7 @@ def get_token_market_data(token_id):
         sparkline=False
     )
     
-    # Préparer les données pour stockage
+    # Prepare data for storage
     processed_data = {
         "token_id": token_id,
         "price_usd": market_data["market_data"]["current_price"]["usd"],
@@ -22,7 +24,7 @@ def get_token_market_data(token_id):
         "timestamp": datetime.utcnow()
     }
     
-    # Sauvegarder dans MongoDB
-    mongo.db.market_data.insert_one(processed_data)
+    # Save to MongoDB
+    mongo_db.market_data.insert_one(processed_data)
     
     return processed_data 

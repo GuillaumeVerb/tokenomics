@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, TypeVar, Union, cast
+from typing import Any, Dict, List, Optional, Union, cast
 
 import plotly.graph_objects as go
 from app.models.tokenomics import (
@@ -478,10 +478,11 @@ def generate_comparison_graph(scenarios: List[ScenarioComparison], metrics: List
 def calculate_range_summary(scenarios: List[ScenarioComparison]) -> ComparisonSummary:
     """Calculate summary ranges across all scenarios."""
     def get_range(values: List[Decimal]) -> Dict[str, Decimal]:
+        if not values:
+            return {"min": Decimal('0'), "max": Decimal('0')}
         return {
-            "min": min(values),
-            "max": max(values),
-            "avg": sum(values) / len(values)
+            "min": to_decimal(min(values)),
+            "max": to_decimal(max(values))
         }
     
     return ComparisonSummary(
@@ -586,13 +587,20 @@ async def compare_scenarios(request: ComparisonRequest) -> ComparisonResponse:
             detail=f"Error in scenario comparison: {str(e)}"
         )
 
-T = TypeVar('T', bound=Union[int, float, Decimal, None])
-
-def to_decimal(value: T) -> Decimal:
-    """Convert any numeric value to Decimal safely."""
+def to_decimal(value: Union[int, float, Decimal, None]) -> Decimal:
+    """Convert a number to Decimal, handling None values."""
     if value is None:
         return Decimal('0')
     return Decimal(str(value))
+
+def get_range(values: List[Decimal]) -> Dict[str, Decimal]:
+    """Calculate the min and max values from a list of Decimals."""
+    if not values:
+        return {"min": Decimal('0'), "max": Decimal('0')}
+    return {
+        "min": to_decimal(min(values)),
+        "max": to_decimal(max(values))
+    }
 
 @dataclass
 class MetricsSummary:
@@ -615,14 +623,13 @@ class MetricsSummary:
 
     def to_dict(self) -> Dict[str, Decimal]:
         """Convert to dictionary with guaranteed Decimal values."""
-        result: Dict[str, Decimal] = {
-            "final_supply": cast(Decimal, to_decimal(self.final_supply)),
-            "total_minted": cast(Decimal, to_decimal(self.total_minted)),
-            "total_burned": cast(Decimal, to_decimal(self.total_burned)),
-            "current_staked": cast(Decimal, to_decimal(self.current_staked)),
-            "supply_change_percentage": cast(Decimal, to_decimal(self.supply_change_percentage))
+        return {
+            "final_supply": to_decimal(self.final_supply),
+            "total_minted": to_decimal(self.total_minted),
+            "total_burned": to_decimal(self.total_burned),
+            "current_staked": to_decimal(self.current_staked),
+            "supply_change_percentage": to_decimal(self.supply_change_percentage)
         }
-        return result
 
 def get_metrics_summary(metrics: List[PeriodMetrics]) -> Dict[str, Decimal]:
     """Calculate summary metrics from a list of period metrics."""

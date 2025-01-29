@@ -1,12 +1,19 @@
 {
-    "python.analysis.extraPaths": [
-        ".",
-        "backend",
-        "./backend",
-        "${workspaceFolder}/backend"
-    ],
+    "python.analysis.extraPaths": ["./typings"],
     "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.stubPath": "./typings",
+    "python.analysis.useLibraryCodeForTypes": true,
     "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.packageIndexDepths": [
+        {
+            "name": "airflow",
+            "depth": 5
+        },
+        {
+            "name": "pandas",
+            "depth": 2
+        }
+    ],
     "python.analysis.autoImportCompletions": true,
     "python.analysis.importFormat": "absolute",
     "python.analysis.indexing": true,
@@ -21,32 +28,5 @@
     ],
     "python.linting.enabled": true,
     "python.linting.pylanceEnabled": true,
-    "python.analysis.completeFunctionParens": true,
-    "python.analysis.useLibraryCodeForTypes": true,
-    "python.analysis.packageIndexDepths": [
-        {
-            "name": "app",
-            "depth": 5
-        },
-        {
-            "name": "tests",
-            "depth": 5
-        }
-    ],
-    "python.analysis.stubPath": "${workspaceFolder}/typings",
-    "python.analysis.diagnosticSeverityOverrides": {
-        "reportMissingImports": "warning",
-        "reportMissingModuleSource": "warning"
-    },
-    "[python]": {
-        "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": "explicit"
-        }
-    },
-    "files.exclude": {
-        "**/__pycache__": true,
-        "**/.pytest_cache": true,
-        "**/*.pyc": true
-    }
+    "python.analysis.completeFunctionParens": true
 } 
