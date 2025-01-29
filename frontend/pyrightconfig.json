@@ -1,0 +1,19 @@
+{
+    "include": [
+        "*.py"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        "venv"
+    ],
+    "ignore": [
+        "**/*.pyc"
+    ],
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+    "pythonVersion": "3.9",
+    "pythonPlatform": "Darwin",
+    "venvPath": ".",
+    "venv": "venv"
+} 
