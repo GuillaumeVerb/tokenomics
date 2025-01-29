@@ -1,14 +1,13 @@
-from typing import List, Optional
-from pydantic import Field
 from decimal import Decimal
+from typing import List, Optional, Tuple
+
 import plotly.graph_objects as go
+from pydantic import BaseModel, Field
+
 from .base import BaseTokenomicsModel
+from .scenario import PeriodMetrics, ScenarioResponse, ScenarioSummary
 from .tokenomics import ScenarioRequest
 
-from .scenario import (
-    ScenarioResponse, 
-    PeriodMetrics, ScenarioSummary
-)
 
 class NamedScenarioRequest(ScenarioRequest):
     """A scenario request with a name for comparison purposes."""
@@ -39,10 +38,10 @@ class ScenarioComparison(BaseTokenomicsModel):
 
 class ComparisonSummary(BaseTokenomicsModel):
     """Summary of ranges for various metrics across all scenarios."""
-    supply_range: tuple[float, float] = Field(..., description="Range of total supply values")
-    minted_range: tuple[float, float] = Field(..., description="Range of total minted tokens")
-    burned_range: tuple[float, float] = Field(..., description="Range of total burned tokens")
-    staked_range: tuple[float, float] = Field(..., description="Range of total staked tokens")
+    supply_range: Tuple[float, float] = Field(..., description="Range of total supply values")
+    minted_range: Tuple[float, float] = Field(..., description="Range of total minted tokens")
+    burned_range: Tuple[float, float] = Field(..., description="Range of total burned tokens")
+    staked_range: Tuple[float, float] = Field(..., description="Range of total staked tokens")
 
 class PlotlyGraph(BaseTokenomicsModel):
     """Plotly graph data and layout."""

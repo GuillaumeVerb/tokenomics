@@ -1,8 +1,22 @@
 {
-    "venvPath": ".",
-    "venv": "venv",
+    "include": [
+        "app",
+        "tests",
+        "dags"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        "venv",
+        "airflow_venv"
+    ],
+    "ignore": [
+        "**/*.pyc"
+    ],
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
     "pythonVersion": "3.9",
-    "extraPaths": ["."],
-    "typeCheckingMode": "basic",
-    "useLibraryCodeForTypes": true
+    "pythonPlatform": "Darwin",
+    "venvPath": ".",
+    "venv": "venv"
 } 

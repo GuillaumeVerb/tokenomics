@@ -3,17 +3,16 @@ Airflow DAG to orchestrate market data collection and tokenomics simulation.
 """
 
 from datetime import datetime, timedelta
-from typing import Dict, Any
-
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from airflow.providers.http.operators.http import SimpleHttpOperator
-from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
-from airflow.providers.mongo.hooks.mongo import MongoHook
-from airflow.utils.email import send_email
+from typing import Any, Dict
 
 import pandas as pd
 import requests
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from airflow.providers.http.operators.http import SimpleHttpOperator
+from airflow.providers.mongo.hooks.mongo import MongoHook
+from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
+from airflow.utils.email import send_email
 from services.market_data import fetch_coingecko_data
 
 # Default arguments for the DAG
@@ -36,7 +35,7 @@ def clean_market_data(**context) -> None:
     4. Adding metadata
     """
     mongo = MongoHook(mongo_conn_id='mongo_default')
-    db = mongo.get_database()
+    db = mongo.get_conn().get_database()
     collection = db.market_data
 
     # Get the latest timestamp for each token
@@ -88,7 +87,7 @@ def check_simulation_needed(**context) -> bool:
     Returns True if simulation is needed.
     """
     mongo = MongoHook(mongo_conn_id='mongo_default')
-    db = mongo.get_database()
+    db = mongo.get_conn().get_database()
     collection = db.market_data
 
     # Get price changes in the last hour
@@ -127,7 +126,7 @@ def prepare_simulation_request(**context) -> Dict[str, Any]:
     Prepare the request body for the simulation API.
     """
     mongo = MongoHook(mongo_conn_id='mongo_default')
-    db = mongo.get_database()
+    db = mongo.get_conn().get_database()
     collection = db.market_data
 
     # Get latest prices
@@ -251,10 +250,10 @@ with DAG(
     # Task 5: Send success notification
     notify_success = SlackWebhookOperator(
         task_id='notify_success',
-        http_conn_id='slack_webhook',
+        slack_webhook_conn_id='slack_webhook',
         message=send_success_notification,
-        trigger_rule='none_failed'
+        trigger_rule='all_success'
     )
 
-    # Define task dependencies
+    # Set task dependencies
     fetch_data >> clean_data >> check_simulation >> run_simulation >> notify_success 
