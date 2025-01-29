@@ -1,4 +1,61 @@
-e
-node_modules
-node_modules
-node_modules
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+airflow_venv/
+backend/venv/
+backend/env/
+backend/airflow_venv/
+
+# Environment Variables and Secrets
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+.secrets
+*.pem
+*.key
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+logs/
+log/
+
+# Test coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Node
+node_modules/
