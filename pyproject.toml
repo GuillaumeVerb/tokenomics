@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tokenomics"
+version = "0.1.0"
+description = "A tokenomics simulation and analysis tool"
+requires-python = ">=3.9"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["backend/tests"]
+python_paths = ["backend"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 88
+
+[tool.pylance]
+python.analysis.typeCheckingMode = "basic"
+python.analysis.diagnosticMode = "workspace"
+python.analysis.useLibraryCodeForTypes = true
+python.analysis.autoImportCompletions = true
+python.analysis.importFormat = "absolute"
+python.analysis.indexing = true 

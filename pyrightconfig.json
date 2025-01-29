@@ -1,8 +1,16 @@
 {
-    "venvPath": ".",
     "venv": "venv",
-    "pythonVersion": "3.9",
-    "extraPaths": ["backend"],
+    "venvPath": ".",
+    "pythonPath": "./venv/bin/python",
     "typeCheckingMode": "basic",
-    "useLibraryCodeForTypes": true
+    "useLibraryCodeForTypes": true,
+    "reportMissingImports": "warning",
+    "extraPaths": [".", "backend"],
+    "pythonVersion": "3.9",
+    "analysis": {
+        "autoImportCompletions": true,
+        "useLibraryCodeForTypes": true,
+        "diagnosticMode": "workspace",
+        "autoSearchPaths": true
+    }
 } 

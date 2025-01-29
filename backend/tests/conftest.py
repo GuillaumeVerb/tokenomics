@@ -5,9 +5,13 @@ import jwt
 from pathlib import Path
 from datetime import datetime, timedelta
 
-# Add the backend directory to the Python path
-backend_dir = Path(__file__).parent.parent
-sys.path.append(str(backend_dir))
+# Add the project root directory to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+# Import common test fixtures
+from fastapi.testclient import TestClient
+from app.main import app
 
 # Import and configure the test app
 from app import create_app
@@ -31,9 +35,8 @@ def app(test_settings):
     return app
 
 @pytest.fixture
-def client(app):
-    """Create a test client."""
-    from fastapi.testclient import TestClient
+def client():
+    """Create a test client fixture."""
     return TestClient(app)
 
 @pytest.fixture

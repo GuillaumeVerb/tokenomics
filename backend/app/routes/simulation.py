@@ -1,28 +1,45 @@
-from fastapi import APIRouter, HTTPException
+from dataclasses import dataclass
+from decimal import Decimal
+from typing import Any, Dict, List, Optional, TypeVar, Union, cast
+
+import plotly.graph_objects as go
 from app.models.tokenomics import (
+    BurnSimulationRequest,
     InflationSimulationRequest,
     InflationSimulationResponse,
-    BurnSimulationRequest,
-    VestingSimulationRequest,
+    SimulationResponse,
     StakingSimulationRequest,
-    SimulationResponse
+    VestingSimulationRequest,
 )
 from app.services.simulation_service import (
     calculate_constant_inflation,
-    calculate_supply_increase
+    calculate_supply_increase,
 )
-from app.services.token_simulation_service import simulate_burn, simulate_vesting, simulate_staking
-from decimal import Decimal
-from typing import List, Dict
-from ..models.scenario import (
-    ScenarioRequest, ScenarioResponse, PeriodMetrics, ScenarioSummary
+from app.services.token_simulation_service import (
+    simulate_burn,
+    simulate_staking,
+    simulate_vesting,
 )
-from ..models.comparison import (
-    ComparisonRequest, ComparisonResponse, ScenarioComparison,
-    ComparisonSummary, PlotlyGraph
-)
-import plotly.graph_objects as go
+from fastapi import APIRouter, HTTPException
 from plotly.subplots import make_subplots
+
+from ..models.comparison import (
+    ComparisonRequest,
+    ComparisonResponse,
+    ComparisonSummary,
+    PlotlyGraph,
+    ScenarioComparison,
+)
+from ..models.scenario import (
+    BurnConfig,
+    InflationConfig,
+    PeriodMetrics,
+    ScenarioRequest,
+    ScenarioResponse,
+    ScenarioSummary,
+    StakingConfig,
+    VestingConfig,
+)
 
 router = APIRouter(prefix="/simulate", tags=["Simulation"])
 
@@ -188,100 +205,127 @@ async def simulate_token_staking(request: StakingSimulationRequest) -> Simulatio
 
 def calculate_inflation(
     current_supply: Decimal,
+    config: Optional[InflationConfig],
     period: int,
-    config: dict,
-    time_step: str
+    is_monthly: bool = True
 ) -> Decimal:
-    if not config:
-        return Decimal(0)
+    """Calculate inflation for a given period."""
+    if not config or not config.initial_rate:
+        return Decimal('0')
         
-    rate = config.initial_rate
-    
-    # Adjust rate based on type
-    if config.type == "halving":
-        halvings = period // config.halving_period
-        rate = rate / (2 ** halvings)
-    elif config.type == "dynamic":
+    if config.type == "constant":
+        rate = Decimal(str(config.initial_rate))
+    elif config.type == "halving":
+        halving_period = int(config.halving_period or 1)
+        halvings = period // (halving_period * (12 if is_monthly else 1))
+        rate = Decimal(str(config.initial_rate)) / Decimal(str(2 ** halvings))
+    else:  # dynamic
+        min_rate = Decimal(str(config.min_rate or 0))
+        decay_rate = Decimal(str(config.decay_rate or 0))
+        decay = decay_rate / Decimal(str(12 if is_monthly else 1))
         rate = max(
-            config.min_rate,
-            rate * (1 - config.decay_rate/100) ** period
+            min_rate,
+            Decimal(str(config.initial_rate)) * ((Decimal('1') - decay/Decimal('100')) ** period)
         )
     
     # Convert annual rate to monthly if needed
-    if time_step == "monthly":
-        rate = rate / 12
-        
-    return current_supply * (rate / 100)
+    if is_monthly:
+        rate = rate / Decimal('12')
+    
+    return current_supply * (rate / Decimal('100'))
 
 def calculate_burn(
     current_supply: Decimal,
-    period: int,
-    config: dict,
-    time_step: str
+    config: Optional[BurnConfig],
+    period: int
 ) -> Decimal:
+    """Calculate burn amount for a given period."""
     if not config:
-        return Decimal(0)
+        return cast(Decimal, Decimal('0'))
         
     if config.type == "continuous":
-        rate = config.rate / 12 if time_step == "monthly" else config.rate
-        return current_supply * (rate / 100)
-    else:
-        return sum(
-            event.amount 
-            for event in config.events 
+        rate = Decimal(str(config.rate or 0))
+        return current_supply * (rate / Decimal('100'))
+    else:  # event-based
+        if not config.events:
+            return cast(Decimal, Decimal('0'))
+        return cast(Decimal, sum(
+            Decimal(str(event.amount)) for event in config.events
             if event.period == period
-        )
+        ))
 
 def calculate_vesting(
-    period: int,
-    config: dict
+    config: Optional[VestingConfig],
+    period: int
 ) -> Decimal:
-    if not config:
-        return Decimal(0)
-        
-    total_vested = Decimal(0)
+    """Calculate vesting amount for a given period."""
+    if not config or not config.periods:
+        return Decimal('0')
     
-    for vest_period in config.periods:
-        if period < vest_period.start_period:
+    total_vested = Decimal('0')
+    for vest in config.periods:
+        if period < vest.start_period:
             continue
-            
-        relative_period = period - vest_period.start_period
         
-        if relative_period < vest_period.cliff_duration:
-            continue
-            
-        if relative_period >= vest_period.duration:
-            continue
-            
-        if vest_period.release_type == "linear":
-            vesting_rate = Decimal(1) / (vest_period.duration - vest_period.cliff_duration)
-            period_vested = vest_period.amount * vesting_rate
-        else:  # exponential
-            remaining_periods = vest_period.duration - vest_period.cliff_duration
-            vesting_rate = Decimal(2) / (remaining_periods * (remaining_periods + 1))
-            period_number = relative_period - vest_period.cliff_duration + 1
-            period_vested = vest_period.amount * vesting_rate * period_number
-            
-        total_vested += period_vested
+        periods_since_start = period - vest.start_period
         
+        if periods_since_start < vest.cliff_duration:
+            continue
+        
+        if periods_since_start >= vest.duration:
+            continue
+        
+        if vest.release_type == "linear":
+            if periods_since_start == vest.cliff_duration:
+                total_vested += (
+                    Decimal(str(vest.amount)) * 
+                    Decimal(str(vest.cliff_duration)) / 
+                    Decimal(str(vest.duration))
+                )
+            else:
+                remaining_periods = vest.duration - vest.cliff_duration
+                if remaining_periods > 0:
+                    monthly_amount = (
+                        Decimal(str(vest.amount)) * 
+                        (Decimal('1') - Decimal(str(vest.cliff_duration)) / Decimal(str(vest.duration))) /
+                        Decimal(str(remaining_periods))
+                    )
+                    total_vested += monthly_amount
+    
     return total_vested
 
 def calculate_staking(
-    circulating_supply: Decimal,
+    config: Optional[StakingConfig],
+    current_supply: Decimal,
+    current_staked: Decimal,
     period: int,
-    config: dict,
-    time_step: str
+    is_monthly: bool = True
 ) -> tuple[Decimal, Decimal]:
+    """Calculate staking changes and rewards."""
     if not config or not config.enabled:
-        return Decimal(0), Decimal(0)
-        
-    target_staked = circulating_supply * (config.target_rate / 100)
+        return Decimal('0'), Decimal('0')
     
     # Convert annual rate to monthly if needed
-    reward_rate = config.reward_rate / 12 if time_step == "monthly" else config.reward_rate
-    rewards = target_staked * (reward_rate / 100)
+    reward_rate = Decimal(str(config.reward_rate or 0))
+    if is_monthly:
+        reward_rate = reward_rate / Decimal('12')
     
-    return target_staked, rewards
+    # Calculate rewards
+    rewards = current_staked * (reward_rate / Decimal('100'))
+    
+    # Calculate target staked amount
+    target_staked = current_supply * (Decimal(str(config.target_rate or 0)) / Decimal('100'))
+    
+    # Adjust staking based on target
+    if current_staked < target_staked:
+        available_for_staking = current_supply - current_staked
+        staking_increase = min(
+            (target_staked - current_staked) * Decimal('0.1'),  # 10% monthly progress toward target
+            available_for_staking
+        )
+        current_staked += staking_increase
+    
+    return current_staked, rewards
 
 @router.post("/simulate/scenario", response_model=ScenarioResponse)
 async def simulate_scenario(request: ScenarioRequest) -> ScenarioResponse:
@@ -296,10 +340,11 @@ async def simulate_scenario(request: ScenarioRequest) -> ScenarioResponse:
     
     # Initialize first period
     staked_amount, staking_rewards = calculate_staking(
-        request.initial_supply,
-        0,
         request.staking_config,
-        request.time_step
+        request.initial_supply,
+        Decimal(0),
+        0,
+        request.time_step == "monthly"
     )
     
     timeline.append(PeriodMetrics(
@@ -319,9 +364,9 @@ async def simulate_scenario(request: ScenarioRequest) -> ScenarioResponse:
         # 1. Calculate inflation
         minted = calculate_inflation(
             total_supply,
-            period,
             request.inflation_config,
-            request.time_step
+            period,
+            request.time_step == "monthly"
         )
         total_supply += minted
         total_minted += minted
@@ -329,23 +374,26 @@ async def simulate_scenario(request: ScenarioRequest) -> ScenarioResponse:
         # 2. Calculate burn
         burned = calculate_burn(
             total_supply,
-            period,
             request.burn_config,
-            request.time_step
+            period
         )
         total_supply -= burned
         total_burned += burned
         
         # 3. Calculate vesting
-        vested = calculate_vesting(period, request.vesting_config)
+        vested = calculate_vesting(
+            request.vesting_config,
+            period
+        )
         total_vested += vested
         
         # 4. Calculate staking
         staked_amount, staking_rewards = calculate_staking(
-            total_supply - staked_amount,
-            period,
             request.staking_config,
-            request.time_step
+            total_supply - staked_amount,
+            staked_amount,
+            period,
+            request.time_step == "monthly"
         )
         total_supply += staking_rewards
         total_minted += staking_rewards
@@ -536,4 +584,75 @@ async def compare_scenarios(request: ComparisonRequest) -> ComparisonResponse:
         raise HTTPException(
             status_code=400,
             detail=f"Error in scenario comparison: {str(e)}"
-        ) 
+        )
+
+T = TypeVar('T', bound=Union[int, float, Decimal, None])
+
+def to_decimal(value: T) -> Decimal:
+    """Convert any numeric value to Decimal safely."""
+    if value is None:
+        return Decimal('0')
+    return Decimal(str(value))
+
+@dataclass
+class MetricsSummary:
+    final_supply: Decimal
+    total_minted: Decimal
+    total_burned: Decimal
+    current_staked: Decimal
+    supply_change_percentage: Decimal
+
+    @classmethod
+    def create_zero(cls) -> 'MetricsSummary':
+        zero = Decimal('0')
+        return cls(
+            final_supply=zero,
+            total_minted=zero,
+            total_burned=zero,
+            current_staked=zero,
+            supply_change_percentage=zero
+        )
+
+    def to_dict(self) -> Dict[str, Decimal]:
+        """Convert to dictionary with guaranteed Decimal values."""
+        result: Dict[str, Decimal] = {
+            "final_supply": cast(Decimal, to_decimal(self.final_supply)),
+            "total_minted": cast(Decimal, to_decimal(self.total_minted)),
+            "total_burned": cast(Decimal, to_decimal(self.total_burned)),
+            "current_staked": cast(Decimal, to_decimal(self.current_staked)),
+            "supply_change_percentage": cast(Decimal, to_decimal(self.supply_change_percentage))
+        }
+        return result
+
+def get_metrics_summary(metrics: List[PeriodMetrics]) -> Dict[str, Decimal]:
+    """Calculate summary metrics from a list of period metrics."""
+    if not metrics:
+        return MetricsSummary.create_zero().to_dict()
+    
+    last_point = metrics[-1]
+    initial_supply = to_decimal(metrics[0].total_supply)
+    final_supply = to_decimal(last_point.total_supply)
+    
+    # Ensure all values are Decimal using the helper function
+    total_minted = to_decimal(last_point.total_minted)
+    total_burned = to_decimal(last_point.total_burned)
+    current_staked = to_decimal(last_point.staked_supply)
+    
+    # Calculate percentage change using only Decimal operations
+    supply_change = (
+        ((final_supply - initial_supply) * Decimal('100')) / initial_supply
+        if initial_supply != Decimal('0')
+        else Decimal('0')
+    )
+    
+    # Create the metrics summary using the dataclass
+    summary = MetricsSummary(
+        final_supply=final_supply,
+        total_minted=total_minted,
+        total_burned=total_burned,
+        current_staked=current_staked,
+        supply_change_percentage=supply_change
+    )
+    
+    # Convert to dictionary with guaranteed Decimal values
+    return summary.to_dict() 
