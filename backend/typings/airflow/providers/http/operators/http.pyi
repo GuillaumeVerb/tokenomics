@@ -1,7 +1,7 @@
 """Type stubs for airflow.providers.http.operators.http."""
 from typing import Any, Callable, Dict, Optional, Union
 
-from airflow.models import BaseOperator
+from ....models import BaseOperator, DAG
 
 class SimpleHttpOperator(BaseOperator):
     def __init__(
@@ -17,6 +17,6 @@ class SimpleHttpOperator(BaseOperator):
         http_conn_id: str = "http_default",
         log_response: bool = False,
         task_id: str,
-        dag: Optional[Any] = None,
+        dag: Optional[DAG] = None,
         **kwargs: Any,
     ) -> None: ... 

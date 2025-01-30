@@ -1,10 +1,6 @@
 """Type stubs for airflow."""
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, Union
-
-from airflow.models import BaseOperator
-from airflow.operators.python import PythonOperator
-from airflow.providers.http.operators.http import SimpleHttpOperator
+from typing import Any, Dict, Optional, Union, Sequence, Callable, Type
 
 class DAG:
     def __init__(
@@ -36,4 +32,49 @@ class DAG:
         jinja_environment_kwargs: Optional[Dict] = None,
         render_template_as_native_obj: bool = False,
         tags: Optional[list[str]] = None,
-    ) -> None: ... 
+    ) -> None: ...
+
+class BaseOperator:
+    def __init__(
+        self,
+        task_id: str,
+        dag: Optional[DAG] = None,
+        **kwargs: Any,
+    ) -> None: ...
+    
+    def set_downstream(self, task_or_tasks: Union['BaseOperator', Sequence['BaseOperator']]) -> None: ...
+
+class PythonOperator(BaseOperator):
+    def __init__(
+        self,
+        *,
+        python_callable: Callable[..., Any],
+        op_args: Optional[Sequence[Any]] = None,
+        op_kwargs: Optional[Dict[str, Any]] = None,
+        templates_dict: Optional[Dict[str, Any]] = None,
+        templates_exts: Optional[Sequence[str]] = None,
+        provide_context: bool = False,
+        task_id: str,
+        dag: Optional[DAG] = None,
+        **kwargs: Any,
+    ) -> None: ...
+
+class SimpleHttpOperator(BaseOperator):
+    def __init__(
+        self,
+        *,
+        endpoint: str,
+        method: str = "POST",
+        data: Optional[Union[Dict[str, Any], str]] = None,
+        headers: Optional[Dict[str, str]] = None,
+        response_filter: Optional[Callable[[Any], Any]] = None,
+        response_check: Optional[Callable[[Any], bool]] = None,
+        extra_options: Optional[Dict[str, Any]] = None,
+        http_conn_id: str = "http_default",
+        log_response: bool = False,
+        task_id: str,
+        dag: Optional[DAG] = None,
+        **kwargs: Any,
+    ) -> None: ...
+
+__all__ = ['DAG', 'BaseOperator', 'PythonOperator', 'SimpleHttpOperator'] 

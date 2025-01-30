@@ -4,29 +4,14 @@
     "python.analysis.autoImportCompletions": true,
     "python.analysis.indexing": true,
     "python.analysis.diagnosticMode": "workspace",
-    "python.analysis.packageIndexDepths": [
-        {
-            "name": "airflow",
-            "depth": 10
-        },
-        {
-            "name": "pandas",
-            "depth": 2
-        }
-    ],
     "python.analysis.extraPaths": [
         "./typings",
-        "./venv/lib/python3.9/site-packages"
+        "."
     ],
     "python.analysis.diagnosticSeverityOverrides": {
         "reportMissingImports": "none",
         "reportMissingTypeStubs": "none",
-        "reportUnusedExpression": "none",
-        "reportMissingModuleSource": "none",
         "reportGeneralTypeIssues": "none",
-        "reportOptionalSubscript": "none",
-        "reportOptionalMemberAccess": "none",
-        "reportOptionalCall": "none",
         "reportAttributeAccessIssue": "none"
     },
     "python.envFile": "${workspaceFolder}/.env",
@@ -34,13 +19,14 @@
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestArgs": [
-        "tests",
-        "-v",
-        "--tb=short"
+        "tests"
     ],
     "python.analysis.stubPath": "./typings",
     "python.analysis.useLibraryCodeForTypes": true,
     "python.analysis.logLevel": "Information",
+    "python.analysis.diagnosticPublishDelay": 1000,
+    "python.analysis.autoSearchPaths": false,
+    "python.analysis.importFormat": "absolute",
     "[python]": {
         "editor.formatOnSave": true,
         "editor.defaultFormatter": "ms-python.python",

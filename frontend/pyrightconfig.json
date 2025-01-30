@@ -1,18 +1,18 @@
 {
     "include": [
-        "*.py"
+        "."
     ],
     "exclude": [
         "**/node_modules",
-        "**/__pycache__",
-        "venv"
+        "**/__pycache__"
     ],
-    "ignore": [
-        "**/*.pyc"
-    ],
-    "reportMissingImports": true,
-    "reportMissingTypeStubs": false,
+    "typeCheckingMode": "basic",
+    "useLibraryCodeForTypes": true,
+    "stubPath": "typings",
     "pythonVersion": "3.9",
+    "reportMissingImports": "warning",
+    "reportMissingTypeStubs": "none",
+    "reportGeneralTypeIssues": "warning",
     "pythonPlatform": "Darwin",
     "venvPath": ".",
     "venv": "venv"

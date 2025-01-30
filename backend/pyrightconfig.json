@@ -19,5 +19,13 @@
     "typeCheckingMode": "off",
     "pythonPlatform": "Darwin",
     "venvPath": ".",
-    "venv": "venv"
+    "venv": "venv",
+    "reportAssignmentType": "none",
+    "reportUnknownMemberType": "none",
+    "reportUnknownVariableType": "none",
+    "reportUnknownArgumentType": "none",
+    "reportPrivateUsage": "none",
+    "reportUndefinedVariable": "none",
+    "reportIncompatibleMethodOverride": "none",
+    "reportIncompatibleVariableOverride": "none"
 } 

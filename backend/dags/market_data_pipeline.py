@@ -4,10 +4,10 @@ Market data pipeline DAG for fetching and processing cryptocurrency market data.
 from datetime import datetime, timedelta
 from typing import Any, Dict, Sequence
 
-import pandas as pd  # type: ignore[import]
-from airflow.models import DAG
-from airflow.operators.python import PythonOperator
-from airflow.providers.http.operators.http import SimpleHttpOperator
+import pandas as pd  # type: ignore
+from airflow import DAG  # type: ignore
+from airflow.operators.python import PythonOperator  # type: ignore
+from airflow.providers.http.operators.http import SimpleHttpOperator  # type: ignore
 
 default_args = {
     'owner': 'airflow',
@@ -19,24 +19,24 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
 }
 
-def process_market_data(**context) -> Sequence[Dict[Any, Any]]:
+def process_market_data(**context: Any) -> Sequence[Dict[str, Any]]:  # type: ignore
     """Process market data fetched from CoinGecko."""
     # Get the response from the previous task
     ti = context['task_instance']
     response = ti.xcom_pull(task_ids='fetch_market_data')
     
     # Convert to DataFrame
-    df = pd.DataFrame(response)
+    df = pd.DataFrame(response)  # type: ignore
     
     # Process data as needed
     # Add your processing logic here
-    processed_df = df[['id', 'symbol', 'name', 'current_price', 'market_cap', 'total_volume']]
-    processed_df['timestamp'] = datetime.utcnow()
+    processed_df = df[['id', 'symbol', 'name', 'current_price', 'market_cap', 'total_volume']]  # type: ignore
+    processed_df['timestamp'] = datetime.utcnow()  # type: ignore
     
-    return processed_df.to_dict(orient='records')
+    return processed_df.to_dict(orient='records')  # type: ignore
 
 # Create the DAG
-dag = DAG(
+dag = DAG(  # type: ignore
     'market_data_pipeline',
     default_args=default_args,
     description='A DAG to fetch and process market data',
@@ -45,7 +45,7 @@ dag = DAG(
 )
 
 # Define tasks
-fetch_market_data = SimpleHttpOperator(
+fetch_market_data = SimpleHttpOperator(  # type: ignore
     task_id='fetch_market_data',
     http_conn_id='coingecko_api',
     endpoint='/api/v3/coins/markets',
@@ -62,7 +62,7 @@ fetch_market_data = SimpleHttpOperator(
     dag=dag,
 )
 
-process_data = PythonOperator(
+process_data = PythonOperator(  # type: ignore
     task_id='process_data',
     python_callable=process_market_data,
     provide_context=True,
@@ -70,4 +70,4 @@ process_data = PythonOperator(
 )
 
 # Set task dependencies
-fetch_market_data.set_downstream(process_data) 
+fetch_market_data.set_downstream(process_data)  # type: ignore 

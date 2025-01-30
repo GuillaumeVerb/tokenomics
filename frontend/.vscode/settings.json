@@ -43,5 +43,34 @@
   },
   "[css]": {
     "editor.defaultFormatter": "vscode.css-language-features"
-  }
+  },
+  "python.analysis.extraPaths": [
+    "./typings"
+  ],
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.stubPath": "./typings",
+  "python.analysis.useLibraryCodeForTypes": true,
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingImports": "none",
+    "reportMissingTypeStubs": "none",
+    "reportGeneralTypeIssues": "none",
+    "reportAttributeAccessIssue": "none"
+  },
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.indexing": true,
+  "python.analysis.packageIndexDepths": [
+    {
+      "name": "pandas",
+      "depth": 2
+    },
+    {
+      "name": "plotly",
+      "depth": 2
+    },
+    {
+      "name": "streamlit",
+      "depth": 1
+    }
+  ]
 } 

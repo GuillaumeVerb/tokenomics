@@ -1,9 +1,15 @@
 {
-    "python.analysis.extraPaths": ["./typings"],
     "python.analysis.typeCheckingMode": "basic",
-    "python.analysis.stubPath": "./typings",
-    "python.analysis.useLibraryCodeForTypes": true,
+    "python.analysis.indexing": true,
     "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.extraPaths": [
+        ".",
+        "backend",
+        "backend/typings",
+        "backend/tests"
+    ],
+    "python.analysis.useLibraryCodeForTypes": true,
+    "python.analysis.stubPath": "backend/typings",
     "python.analysis.packageIndexDepths": [
         {
             "name": "airflow",
@@ -16,15 +22,13 @@
     ],
     "python.analysis.autoImportCompletions": true,
     "python.analysis.importFormat": "absolute",
-    "python.analysis.indexing": true,
     "python.defaultInterpreterPath": "./venv/bin/python",
     "python.envFile": "${workspaceFolder}/backend/tests/.env.test",
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,
     "python.testing.pytestArgs": [
-        "backend/tests",
-        "--import-mode=importlib"
+        "backend/tests"
     ],
     "python.linting.enabled": true,
     "python.linting.pylanceEnabled": true,

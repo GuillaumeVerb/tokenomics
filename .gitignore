@@ -2,9 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
-t*.so
+*.so
 .Python
+
+# Build and Distribution
 build/
 develop-eggs/
 dist/
@@ -21,14 +22,15 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# Virtual Environments
 venv/
 env/
 ENV/
-airflow_venv/
+.env/
+.venv/
 backend/venv/
 backend/env/
-backend/airflow_venv/
+backend/.venv/
 
 # Environment Variables and Secrets
 .env
@@ -41,34 +43,47 @@ backend/.env.*
 *.pem
 *.key
 
-# IDE
+# IDE and Editor Files
 .idea/
+.vscode/
 *.swp
 *.swo
+*~
 .DS_Store
 
-# Logs
+# Logs and Debugging
 *.log
 logs/
 log/
+debug/
 
-# Test coverage
+# Test and Coverage
 .coverage
 coverage.xml
 htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+
+# Type Checking
+.mypy_cache/
+.pytype/
+.pyre/
+.ruff_cache/
+
+# Documentation
+docs/_build/
+site/
 
 # Node
 node_modules/
-node_modules
-node_modules
-node_modules
-node_modules
-node_modules
-node_modules
-node_modules
-node_modules
-node_modules
-node_modules
-node_modules
-node_modules
-node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Project specific
+*.sqlite3
+*.db
+*.pid
+celerybeat-schedule
+celerybeat.pid

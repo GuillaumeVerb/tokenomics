@@ -1,5 +1,5 @@
 from pydantic import Field, validator
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict
 from decimal import Decimal
 from datetime import datetime
 from .base import BaseTokenomicsModel
@@ -154,4 +154,17 @@ class ScenarioSummary(BaseTokenomicsModel):
 
 class ScenarioResponse(BaseTokenomicsModel):
     timeline: List[PeriodMetrics] = Field(..., description="Period by period metrics")
-    summary: ScenarioSummary = Field(..., description="Scenario summary metrics") 
+    summary: ScenarioSummary = Field(..., description="Scenario summary metrics")
+
+class NamedScenarioRequest(BaseTokenomicsModel):
+    """Named scenario request model."""
+    name: str
+    burn_config: BurnConfig
+    vesting_config: VestingConfig
+    staking_config: StakingConfig
+
+class ScenarioComparison(BaseTokenomicsModel):
+    """Comparison between two scenarios."""
+    name: str
+    timeline: List[PeriodMetrics]
+    summary: Dict[str, float] 
