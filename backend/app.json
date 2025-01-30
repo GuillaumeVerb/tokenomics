@@ -1,0 +1,47 @@
+{
+  "name": "tokenomics-api",
+  "description": "Tokenomics simulation and analysis API",
+  "keywords": [
+    "python",
+    "fastapi",
+    "tokenomics",
+    "blockchain"
+  ],
+  "website": "https://github.com/yourusername/tokenomics",
+  "repository": "https://github.com/yourusername/tokenomics",
+  "success_url": "/docs",
+  "env": {
+    "MONGODB_URI": {
+      "description": "MongoDB connection URI",
+      "required": true
+    },
+    "JWT_SECRET": {
+      "description": "Secret key for JWT token generation",
+      "generator": "secret"
+    },
+    "ENVIRONMENT": {
+      "description": "Application environment",
+      "value": "production"
+    },
+    "ALLOWED_ORIGINS": {
+      "description": "Comma-separated list of allowed CORS origins",
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "addons": [
+    {
+      "plan": "mongoatlas:free"
+    }
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+} 
