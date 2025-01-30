@@ -2,39 +2,64 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "8000:8000"
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/tokenomics
-      - FLASK_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/tokenomics
+      - JWT_SECRET=your_jwt_secret_key_here
+      - ENVIRONMENT=production
     volumes:
-      - ./backend:/app
+      - ./backend/app:/app/app
     depends_on:
-      - mongodb
+      - mongo
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+      - NODE_ENV=production
     volumes:
-      - ./frontend:/app
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
     depends_on:
       - backend
+    networks:
+      - app-network
 
-  mongodb:
+  mongo:
     image: mongo:latest
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-
-  data-pipeline:
-    build: ./data-pipeline
-    volumes:
-      - ./data-pipeline:/app
-    depends_on:
-      - mongodb
+    networks:
+      - app-network
+    environment:
+      - MONGO_INITDB_DATABASE=tokenomics
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
-  mongodb_data: 
+  mongodb_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge 
