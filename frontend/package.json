@@ -17,6 +17,7 @@
   "description": "",
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
+    "@reduxjs/toolkit": "^2.5.1",
     "@types/axios": "^0.9.36",
     "@types/node": "^20.10.5",
     "@types/react": "^18.2.45",
@@ -25,11 +26,14 @@
     "axios": "^1.7.9",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
+    "jwt-decode": "^4.0.0",
     "plotly.js": "^2.27.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-plotly.js": "^2.6.0",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^6.21.1",
+    "socket.io-client": "^4.8.1",
     "typescript": "^5.3.3"
   },
   "devDependencies": {

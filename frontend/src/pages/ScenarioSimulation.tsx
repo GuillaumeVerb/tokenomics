@@ -1,11 +1,27 @@
-import React, { useState } from 'react';
-import { Card, Button, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Card, Button, message, Progress } from 'antd';
 import Plot from 'react-plotly.js';
 import { ShockEventsForm } from '../components/ShockEventsForm';
-import { SimulationParams, ShockEvent, SimulationResults, TimeUnit } from '../types/simulation';
-import { simulateScenario } from '../services/api';
+import { SimulationParams, ShockEvent, SimulationResults } from '../types/simulation';
+import { wsService } from '../services/websocket';
+import { RootState } from '../store';
+import { resetSimulation } from '../store/simulationSlice';
 
 export const ScenarioSimulation: React.FC = () => {
+  const dispatch = useDispatch();
+  const {
+    progress,
+    results,
+    error,
+    isLoading
+  }: {
+    progress: number;
+    results: SimulationResults | null;
+    error: string | null;
+    isLoading: boolean;
+  } = useSelector((state: RootState) => state.simulation);
+
   const [params] = useState<SimulationParams>({
     initial_supply: 1000000,
     initial_price: 1.0,
@@ -16,53 +32,40 @@ export const ScenarioSimulation: React.FC = () => {
   });
 
   const [shockEvents, setShockEvents] = useState<ShockEvent[]>([]);
-  const [results, setResults] = useState<SimulationResults | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const getEventMonth = (event: ShockEvent): number => {
-    return event.time_unit === TimeUnit.YEARS ? event.time_step * 12 : event.time_step;
-  };
+  useEffect(() => {
+    // Connexion au WebSocket lors du montage du composant
+    wsService.connect();
+
+    // Nettoyage lors du démontage
+    return () => {
+      wsService.disconnect();
+      dispatch(resetSimulation());
+    };
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+    }
+  }, [error]);
 
   const handleSimulate = async () => {
     try {
-      setLoading(true);
-      const simulationResults = await simulateScenario(params, shockEvents);
-      setResults(simulationResults);
-      message.success('Simulation terminée avec succès');
+      // Démarrage de la simulation via WebSocket
+      wsService.startSimulation({
+        params,
+        shock_events: shockEvents
+      });
     } catch (error) {
-      message.error('Erreur lors de la simulation');
-      console.error(error);
-    } finally {
-      setLoading(false);
+      if (error instanceof Error) {
+        message.error(error.message);
+      }
     }
   };
 
-  const getEventAnnotations = (data: number[]) => {
-    return shockEvents.map(event => {
-      const month = getEventMonth(event);
-      return {
-        x: month,
-        y: data[month],
-        text: `${event.event_type}: ${(event.value * 100).toFixed(1)}%`,
-        showarrow: true,
-        arrowhead: 1,
-        arrowsize: 1,
-        arrowwidth: 2,
-        arrowcolor: '#666',
-        ax: 0,
-        ay: -40,
-        font: {
-          size: 12
-        },
-        bgcolor: 'rgba(255, 255, 255, 0.8)',
-        bordercolor: '#666',
-        borderwidth: 1,
-        borderpad: 4,
-        hoverlabel: {
-          bgcolor: 'white'
-        }
-      };
-    });
+  const getEventMonth = (event: ShockEvent): number => {
+    return event.time_unit === 'years' ? event.time_step * 12 : event.time_step;
   };
 
   return (
@@ -84,11 +87,17 @@ export const ScenarioSimulation: React.FC = () => {
         <Button
           type="primary"
           onClick={handleSimulate}
-          loading={loading}
+          loading={isLoading}
           className="mt-4"
         >
           Lancer la simulation
         </Button>
+
+        {isLoading && (
+          <div className="mt-4">
+            <Progress percent={progress} status="active" />
+          </div>
+        )}
       </Card>
 
       {results && (
@@ -110,7 +119,23 @@ export const ScenarioSimulation: React.FC = () => {
                 xaxis: { title: 'Mois' },
                 yaxis: { title: 'Tokens' },
                 height: 400,
-                annotations: getEventAnnotations(results.supply),
+                annotations: shockEvents.map(event => ({
+                  x: getEventMonth(event),
+                  y: results.supply[getEventMonth(event)],
+                  text: `${event.event_type}: ${(event.value * 100).toFixed(1)}%`,
+                  showarrow: true,
+                  arrowhead: 1,
+                  arrowsize: 1,
+                  arrowwidth: 2,
+                  arrowcolor: '#666',
+                  ax: 0,
+                  ay: -40,
+                  font: { size: 12 },
+                  bgcolor: 'rgba(255, 255, 255, 0.8)',
+                  bordercolor: '#666',
+                  borderwidth: 1,
+                  borderpad: 4
+                })),
                 showlegend: true,
                 hovermode: 'closest'
               }}
@@ -134,7 +159,23 @@ export const ScenarioSimulation: React.FC = () => {
                 xaxis: { title: 'Mois' },
                 yaxis: { title: 'Prix ($)' },
                 height: 400,
-                annotations: getEventAnnotations(results.price),
+                annotations: shockEvents.map(event => ({
+                  x: getEventMonth(event),
+                  y: results.price[getEventMonth(event)],
+                  text: `${event.event_type}: ${(event.value * 100).toFixed(1)}%`,
+                  showarrow: true,
+                  arrowhead: 1,
+                  arrowsize: 1,
+                  arrowwidth: 2,
+                  arrowcolor: '#666',
+                  ax: 0,
+                  ay: -40,
+                  font: { size: 12 },
+                  bgcolor: 'rgba(255, 255, 255, 0.8)',
+                  bordercolor: '#666',
+                  borderwidth: 1,
+                  borderpad: 4
+                })),
                 showlegend: true,
                 hovermode: 'closest'
               }}
