@@ -1,108 +1,228 @@
-# Tokenomics Application
+# Guide Utilisateur - Simulateur de Tokenomics
 
-This application consists of a FastAPI backend, React frontend, and MongoDB database. Below are instructions for running the application using Docker.
+## Table des matières
+- [Installation et Configuration](#installation-et-configuration)
+  - [Prérequis](#prérequis)
+  - [Installation locale](#installation-locale)
+  - [Configuration de l'environnement](#configuration-de-lenvironnement)
+- [Déploiement](#déploiement)
+  - [Docker](#docker)
+  - [Heroku](#heroku)
+  - [Vercel](#vercel)
+- [Utilisation du simulateur](#utilisation-du-simulateur)
+  - [Simulation simple](#simulation-simple)
+  - [Scénario avancé](#scénario-avancé)
+  - [Comparaison de scénarios](#comparaison-de-scénarios)
+- [Fonctionnalités des graphiques](#fonctionnalités-des-graphiques)
+- [Limites et avertissements](#limites-et-avertissements)
+- [FAQ et dépannage](#faq-et-dépannage)
 
-## Prerequisites
+## Installation et Configuration
 
-- Docker
-- Docker Compose
+### Prérequis
+- Python 3.11+
+- Node.js 18+
+- MongoDB 6.0+
+- Git
 
-## Getting Started
+### Installation locale
 
-1. Clone the repository:
+1. Cloner le repository :
 ```bash
-git clone <repository-url>
+git clone https://github.com/votre-username/tokenomics.git
 cd tokenomics
 ```
 
-2. Create a `.env` file in the root directory:
+2. Installation du backend :
 ```bash
-# Backend
-MONGODB_URI=mongodb://mongo:27017/tokenomics
-JWT_SECRET=your_jwt_secret_key_here
-ENVIRONMENT=production
-
-# Frontend
-REACT_APP_API_URL=http://localhost:8000
-NODE_ENV=production
+cd backend
+python -m venv venv
+source venv/bin/activate  # Sur Windows : venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-3. Build and start the containers:
+3. Installation du frontend :
 ```bash
-docker-compose up --build
+cd frontend
+npm install
 ```
 
-This command will:
-- Build the Docker images for the backend and frontend
-- Start all services defined in docker-compose.yml
-- Create necessary volumes and networks
-- Set up environment variables
+### Configuration de l'environnement
 
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- MongoDB: localhost:27017
-
-## Development Mode
-
-For development, you can use the volume mounts to enable hot-reloading:
-- Backend code changes in `./backend/app` will be reflected immediately
-- Frontend code changes in `./frontend/src` and `./frontend/public` will trigger automatic rebuilds
-
-## Container Management
-
-Common commands:
-
-```bash
-# Start containers in the background
-docker-compose up -d
-
-# View container logs
-docker-compose logs -f
-
-# Stop containers
-docker-compose down
-
-# Stop containers and remove volumes
-docker-compose down -v
-
-# Rebuild specific service
-docker-compose up --build <service-name>
+1. Backend (`.env`) :
+```env
+MONGODB_URI=mongodb://localhost:27017/tokenomics
+JWT_SECRET=votre_secret_jwt
+ENVIRONMENT=development
 ```
 
-## Architecture
+2. Frontend (`.env.local`) :
+```env
+VITE_API_URL=http://localhost:8000
+```
 
-The application uses a three-tier architecture:
-1. Frontend (React) - Port 3000
-2. Backend (FastAPI) - Port 8000
-3. Database (MongoDB) - Port 27017
+3. Lancer en mode développement :
 
-All services are connected through a Docker network named `app-network`.
+Backend :
+```bash
+cd backend
+uvicorn app.main:app --reload
+```
 
-## Data Persistence
+Frontend :
+```bash
+cd frontend
+npm run dev
+```
 
-MongoDB data is persisted using a named volume `mongodb_data`. This ensures your data survives container restarts.
+Le simulateur sera accessible sur `http://localhost:5173`
 
-## Health Checks
+## Déploiement
 
-The application includes health checks for:
-- Backend service (HTTP endpoint)
-- MongoDB (ping command)
+### Docker
 
-These ensure the application only starts when all dependencies are healthy.
+1. Construction de l'image :
+```bash
+docker build -t tokenomics-api ./backend
+```
 
-## Troubleshooting
+2. Lancement du conteneur :
+```bash
+docker run -p 8000:8000 \
+  -e MONGODB_URI=votre_uri_mongodb \
+  -e JWT_SECRET=votre_secret \
+  -e ENVIRONMENT=production \
+  tokenomics-api
+```
 
-1. If the frontend can't connect to the backend:
-   - Check if the backend container is running: `docker-compose ps`
-   - Verify the backend health check: `docker-compose logs backend`
-   - Ensure REACT_APP_API_URL is set correctly
+### Heroku
 
-2. If MongoDB connection fails:
-   - Check if MongoDB container is running: `docker-compose ps`
-   - Verify MongoDB logs: `docker-compose logs mongo`
-   - Ensure MONGODB_URI is correct in the environment variables
+1. Installation du CLI Heroku :
+```bash
+curl https://cli-assets.heroku.com/install.sh | sh
+```
 
-3. For permission issues:
-   - Ensure the current user has permissions to access Docker
-   - Check volume mount permissions 
+2. Déploiement :
+```bash
+heroku login
+heroku create votre-app
+heroku config:set MONGODB_URI=votre_uri_mongodb
+heroku config:set JWT_SECRET=votre_secret
+heroku config:set ENVIRONMENT=production
+git push heroku main
+```
+
+### Vercel
+
+1. Installation du CLI Vercel :
+```bash
+npm install -g vercel
+```
+
+2. Déploiement :
+```bash
+cd frontend
+vercel
+```
+
+## Utilisation du simulateur
+
+### Simulation simple
+
+La page de simulation simple permet de :
+- Définir les paramètres de base du token
+- Visualiser l'évolution du prix et de la liquidité
+- Ajuster les paramètres en temps réel
+
+![Simulation Simple](docs/images/simulation-simple.png)
+
+Paramètres disponibles :
+- Supply initial
+- Prix initial
+- Liquidité initiale
+- Taux d'inflation
+- Période de vesting
+
+### Scénario avancé
+
+La page de scénario avancé offre :
+- Configuration détaillée des vesting schedules
+- Paramètres de staking
+- Simulation d'événements de marché
+- Métriques avancées
+
+![Scénario Avancé](docs/images/scenario-avance.png)
+
+### Comparaison de scénarios
+
+Permet de :
+- Comparer jusqu'à 3 scénarios différents
+- Analyser les différences de performance
+- Exporter les résultats
+
+![Comparaison](docs/images/comparaison.png)
+
+## Fonctionnalités des graphiques
+
+Les graphiques Plotly offrent plusieurs fonctionnalités interactives :
+
+1. Zoom :
+   - Utiliser la molette de la souris
+   - Double-clic pour réinitialiser
+   - Box select pour zoomer sur une zone
+
+2. Hover :
+   - Affichage des valeurs précises
+   - Informations contextuelles
+   - Métriques calculées
+
+3. Export :
+   - Format PNG pour les images
+   - Export PDF du rapport complet
+   - Export Excel des données brutes
+
+![Fonctionnalités Graphiques](docs/images/graphiques.png)
+
+## Limites et avertissements
+
+1. Paramètres critiques :
+   - Inflation > 100% : ⚠️ Risque de dévaluation rapide
+   - Liquidité < 10% : ⚠️ Forte volatilité possible
+   - Vesting < 6 mois : ⚠️ Pression de vente potentielle
+
+2. Performances :
+   - Limite de 10 ans pour les simulations
+   - Max 3 scénarios en comparaison
+   - Rafraîchissement des graphiques : 1s
+
+## FAQ et dépannage
+
+### Erreurs courantes
+
+1. "Failed to connect to MongoDB"
+   - Vérifier que MongoDB est lancé
+   - Vérifier l'URI de connexion
+   - Vérifier les permissions
+
+2. "API endpoint not found"
+   - Vérifier que le backend est lancé
+   - Vérifier VITE_API_URL dans .env.local
+   - Vérifier les logs du backend
+
+3. "Invalid parameters"
+   - Supply initial doit être > 0
+   - Prix initial doit être > 0
+   - Liquidité doit être entre 0 et 100%
+
+### Support
+
+Pour toute question ou problème :
+- Ouvrir une issue sur GitHub
+- Consulter la documentation API
+- Contacter le support technique
+
+---
+
+## Contribution
+
+Les contributions sont les bienvenues ! Voir [CONTRIBUTING.md](CONTRIBUTING.md) pour les détails. 
