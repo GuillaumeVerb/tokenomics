@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { SimulationParams, ShockEvent, SimulationResults } from '../types/simulation'
 
 const API_URL = process.env.VITE_API_URL || 'http://localhost:8000/api'
 
@@ -47,20 +48,53 @@ export interface SimulationRequest {
   }
 }
 
-const api = axios.create({
+interface ErrorResponse {
+  detail: string
+}
+
+// Créer une instance Axios avec la configuration de base
+const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
-  },
+    'Content-Type': 'application/json'
+  }
 })
 
 export const simulationApi = {
   runScenario: async (data: SimulationRequest): Promise<SimulationResponse> => {
-    const response = await api.post<SimulationResponse>('/simulate/scenario', data)
+    const response = await apiClient.post<SimulationResponse>('/simulate/scenario', data)
     return response.data
   },
   compareScenarios: async (scenarios: SimulationRequest[]): Promise<SimulationResponse[]> => {
-    const response = await api.post<SimulationResponse[]>('/simulate/compare', { scenarios })
+    const response = await apiClient.post<SimulationResponse[]>('/simulate/compare', { scenarios })
     return response.data
   },
-} 
+}
+
+export const simulateScenario = async (
+  params: SimulationParams,
+  shockEvents: ShockEvent[]
+): Promise<SimulationResults> => {
+  try {
+    const response = await apiClient.post<SimulationResults>('/simulate/scenario', {
+      ...params,
+      shock_events: shockEvents.map(event => ({
+        time_step: event.time_step,
+        time_unit: event.time_unit,
+        event_type: event.event_type,
+        value: event.value,
+        description: event.description
+      }))
+    })
+
+    return response.data
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const errorResponse = error.response as { data?: ErrorResponse }
+      if (errorResponse.data?.detail) {
+        throw new Error(errorResponse.data.detail)
+      }
+    }
+    throw new Error('Erreur lors de la simulation')
+  }
+}
