@@ -87,3 +87,4 @@ yarn-error.log*
 *.pid
 celerybeat-schedule
 celerybeat.pid
+node_modules

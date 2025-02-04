@@ -1,6 +1,6 @@
 import pytest
 from decimal import Decimal
-from app.models.tokenomics import InflationSimulationRequest
+from app.models.tokenomics import ConstantInflationRequest
 from app.services.simulation_service import (
     calculate_constant_inflation,
     calculate_supply_increase
@@ -58,21 +58,21 @@ def test_supply_increase_calculation():
 def test_invalid_input_validation():
     """Test that invalid inputs raise appropriate errors"""
     with pytest.raises(ValueError):
-        InflationSimulationRequest(
+        ConstantInflationRequest(
             initial_supply=Decimal('-1000'),
             inflation_rate=Decimal('10'),
             duration_in_years=5
         )
     
     with pytest.raises(ValueError):
-        InflationSimulationRequest(
+        ConstantInflationRequest(
             initial_supply=Decimal('1000'),
             inflation_rate=Decimal('-10'),
             duration_in_years=5
         )
     
     with pytest.raises(ValueError):
-        InflationSimulationRequest(
+        ConstantInflationRequest(
             initial_supply=Decimal('1000'),
             inflation_rate=Decimal('10'),
             duration_in_years=0

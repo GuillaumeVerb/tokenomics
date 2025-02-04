@@ -5,7 +5,20 @@ import jwt
 from datetime import datetime, timedelta
 
 from app.main import app
-from app.config import settings
+from app.core.config import settings
+from app.models.tokenomics import (
+    ConstantInflationRequest,
+    BurnRequest,
+    VestingRequest,
+    StakingRequest,
+    ScenarioRequest,
+    VestingPeriod,
+    BurnEvent,
+    InflationConfig,
+    BurnConfig,
+    VestingConfig,
+    StakingConfig
+)
 
 client = TestClient(app)
 
@@ -54,16 +67,16 @@ def test_endpoint_with_invalid_token(invalid_token):
 # Test Constant Inflation
 def test_constant_inflation_simulation(auth_headers):
     """Test the constant inflation simulation endpoint."""
-    request_data = {
-        'initial_supply': 1000000,
-        'inflation_rate': 5.0,
-        'duration_in_years': 5
-    }
+    request = ConstantInflationRequest(
+        initial_supply=1000000,
+        inflation_rate=5.0,
+        duration_in_years=5
+    )
     
     response = client.post(
         '/simulate/constant_inflation',
         headers=auth_headers,
-        json=request_data
+        json=request.model_dump_json()
     )
     
     assert response.status_code == 200
@@ -75,42 +88,44 @@ def test_constant_inflation_simulation(auth_headers):
 def test_constant_inflation_validation(auth_headers):
     """Test input validation for constant inflation endpoint."""
     # Test invalid inflation rate
+    request = ConstantInflationRequest(
+        initial_supply=1000000,
+        inflation_rate=150.0,  # Invalid: > 100%
+        duration_in_years=5
+    )
     response = client.post(
         '/simulate/constant_inflation',
         headers=auth_headers,
-        json={
-            'initial_supply': 1000000,
-            'inflation_rate': 150.0,  # Invalid: > 100%
-            'duration_in_years': 5
-        }
+        json=request.model_dump_json()
     )
     assert response.status_code == 422
     
     # Test invalid duration
+    request = ConstantInflationRequest(
+        initial_supply=1000000,
+        inflation_rate=5.0,
+        duration_in_years=0  # Invalid: <= 0
+    )
     response = client.post(
         '/simulate/constant_inflation',
         headers=auth_headers,
-        json={
-            'initial_supply': 1000000,
-            'inflation_rate': 5.0,
-            'duration_in_years': 0  # Invalid: <= 0
-        }
+        json=request.model_dump_json()
     )
     assert response.status_code == 422
 
 # Test Burn Simulation
 def test_continuous_burn_simulation(auth_headers):
     """Test the continuous burn simulation endpoint."""
-    request_data = {
-        'initial_supply': 1000000,
-        'duration_in_months': 12,
-        'burn_rate': 1.0
-    }
+    request = BurnRequest(
+        initial_supply=1000000,
+        duration_in_months=12,
+        burn_rate=1.0
+    )
     
     response = client.post(
         '/simulate/burn',
         headers=auth_headers,
-        json=request_data
+        json=request.model_dump_json()
     )
     
     assert response.status_code == 200
@@ -120,19 +135,19 @@ def test_continuous_burn_simulation(auth_headers):
 
 def test_event_based_burn_simulation(auth_headers):
     """Test the event-based burn simulation endpoint."""
-    request_data = {
-        'initial_supply': 1000000,
-        'duration_in_months': 12,
-        'burn_events': [
-            {'month': 3, 'amount': 50000},
-            {'month': 6, 'amount': 75000}
+    request = BurnRequest(
+        initial_supply=1000000,
+        duration_in_months=12,
+        burn_events=[
+            BurnEvent(month=3, amount=50000),
+            BurnEvent(month=6, amount=75000)
         ]
-    }
+    )
     
     response = client.post(
         '/simulate/burn',
         headers=auth_headers,
-        json=request_data
+        json=request.model_dump_json()
     )
     
     assert response.status_code == 200
@@ -142,29 +157,33 @@ def test_event_based_burn_simulation(auth_headers):
 # Test Vesting Simulation
 def test_linear_vesting_simulation(auth_headers):
     """Test the vesting simulation endpoint with linear schedule."""
-    request_data = {
-        'total_supply': 1000000,
-        'duration_in_months': 24,
-        'vesting_periods': [
-            {
-                'start_month': 0,
-                'duration_months': 12,
-                'tokens_amount': 400000,
-                'cliff_months': 0
-            },
-            {
-                'start_month': 6,
-                'duration_months': 12,
-                'tokens_amount': 600000,
-                'cliff_months': 3
-            }
-        ]
-    }
+    request = VestingRequest(
+        initial_supply=Decimal("1000000"),
+        duration_in_months=24,
+        vesting_config=VestingConfig(
+            periods=[
+                VestingPeriod(
+                    start_period=0,
+                    duration=12,
+                    amount=Decimal("400000"),
+                    cliff_duration=0,
+                    release_type="linear"
+                ),
+                VestingPeriod(
+                    start_period=6,
+                    duration=12,
+                    amount=Decimal("600000"),
+                    cliff_duration=3,
+                    release_type="linear"
+                )
+            ]
+        )
+    )
     
     response = client.post(
         '/simulate/vesting',
         headers=auth_headers,
-        json=request_data
+        json=request.model_dump_json()
     )
     
     assert response.status_code == 200
@@ -175,18 +194,21 @@ def test_linear_vesting_simulation(auth_headers):
 # Test Staking Simulation
 def test_staking_simulation(auth_headers):
     """Test the staking simulation endpoint."""
-    request_data = {
-        'total_supply': 1000000,
-        'duration_in_months': 12,
-        'staking_rate': 50.0,
-        'staking_reward_rate': 12.0,
-        'lock_period': 3
-    }
+    request = StakingRequest(
+        initial_supply=Decimal("1000000"),
+        duration_in_months=12,
+        staking_config=StakingConfig(
+            enabled=True,
+            target_rate=Decimal("50"),
+            reward_rate=Decimal("12"),
+            lock_duration=3
+        )
+    )
     
     response = client.post(
         '/simulate/staking',
         headers=auth_headers,
-        json=request_data
+        json=request.model_dump_json()
     )
     
     assert response.status_code == 200
@@ -198,42 +220,43 @@ def test_staking_simulation(auth_headers):
 # Test Scenario Simulation
 def test_complete_scenario_simulation(auth_headers):
     """Test a complete scenario with multiple mechanisms."""
-    request_data = {
-        'initial_supply': 1000000,
-        'time_step': 'monthly',
-        'duration': 24,
-        'inflation_config': {
-            'type': 'dynamic',
-            'initial_rate': 5.0,
-            'min_rate': 2.0,
-            'decay_rate': 20.0
-        },
-        'burn_config': {
-            'type': 'continuous',
-            'rate': 1.0
-        },
-        'vesting_config': {
-            'periods': [
-                {
-                    'start_period': 0,
-                    'duration': 12,
-                    'amount': 200000,
-                    'cliff_duration': 3
-                }
+    request = ScenarioRequest(
+        initial_supply=Decimal("1000000"),
+        time_step="monthly",
+        duration=24,
+        inflation_config=InflationConfig(
+            type="dynamic",
+            initial_rate=Decimal("5.0"),
+            min_rate=Decimal("2.0"),
+            decay_rate=Decimal("20.0")
+        ),
+        burn_config=BurnConfig(
+            type="continuous",
+            rate=Decimal("1.0")
+        ),
+        vesting_config=VestingConfig(
+            periods=[
+                VestingPeriod(
+                    start_period=0,
+                    duration=12,
+                    amount=Decimal("200000"),
+                    cliff_duration=3,
+                    release_type="linear"
+                )
             ]
-        },
-        'staking_config': {
-            'enabled': True,
-            'target_rate': 40.0,
-            'reward_rate': 12.0,
-            'lock_duration': 3
-        }
-    }
+        ),
+        staking_config=StakingConfig(
+            enabled=True,
+            target_rate=Decimal("40.0"),
+            reward_rate=Decimal("12.0"),
+            lock_duration=3
+        )
+    )
     
     response = client.post(
         '/simulate/scenario',
         headers=auth_headers,
-        json=request_data
+        json=request.model_dump_json()
     )
     
     assert response.status_code == 200

@@ -7,7 +7,7 @@ import logging
 from datetime import datetime
 import jwt
 from typing import Optional
-from .config import settings
+from .core.config import settings
 
 # Configuration du logging
 logging.basicConfig(

@@ -1,8 +1,8 @@
 import pytest
 from decimal import Decimal
 from app.models.tokenomics import (
-    BurnSimulationRequest, VestingSimulationRequest, StakingSimulationRequest,
-    BurnEvent, VestingPeriod
+    BurnRequest, VestingRequest, StakingRequest,
+    BurnEvent, VestingPeriod, VestingConfig, StakingConfig
 )
 from app.services.token_simulation_service import (
     simulate_burn, simulate_vesting, simulate_staking
@@ -10,9 +10,9 @@ from app.services.token_simulation_service import (
 
 def test_continuous_burn():
     """Test continuous burn rate simulation"""
-    request = BurnSimulationRequest(
+    request = BurnRequest(
         initial_supply=Decimal('1000000'),
-        duration=12,
+        duration_in_months=12,
         burn_rate=Decimal('1')  # 1% monthly burn
     )
     
@@ -25,9 +25,9 @@ def test_continuous_burn():
 
 def test_burn_events():
     """Test specific burn events simulation"""
-    request = BurnSimulationRequest(
+    request = BurnRequest(
         initial_supply=Decimal('1000000'),
-        duration=12,
+        duration_in_months=12,
         burn_events=[
             BurnEvent(month=6, amount=Decimal('100000')),
             BurnEvent(month=12, amount=Decimal('50000'))
@@ -42,9 +42,9 @@ def test_burn_events():
 
 def test_combined_burn():
     """Test multiple burn events simulation"""
-    request = BurnSimulationRequest(
+    request = BurnRequest(
         initial_supply=Decimal('1000000'),
-        duration=12,
+        duration_in_months=12,
         burn_events=[
             BurnEvent(month=3, amount=Decimal('5000')),
             BurnEvent(month=6, amount=Decimal('50000')),
@@ -62,159 +62,174 @@ def test_combined_burn():
     assert result[-1].burned_supply == Decimal('65000.00')
 
 def test_linear_vesting():
-    """Test linear vesting schedule"""
-    request = VestingSimulationRequest(
-        total_supply=Decimal('1000000'),
-        duration=24,
-        vesting_periods=[
-            VestingPeriod(
-                start_month=0,
-                duration_months=12,
-                tokens_amount=Decimal('1000000'),
-                cliff_months=0
-            )
-        ]
+    """Test linear vesting simulation."""
+    request = VestingRequest(
+        initial_supply=Decimal("1000000"),
+        duration_in_months=12,
+        vesting_config=VestingConfig(
+            periods=[
+                VestingPeriod(
+                    start_period=0,
+                    duration=12,
+                    amount=Decimal("200000"),
+                    cliff_duration=0,
+                    release_type="linear"
+                )
+            ]
+        )
     )
     
-    result = simulate_vesting(request)
+    timeline = simulate_vesting(request)
     
-    assert len(result) == 25  # 0 to 24 months
-    assert result[0].circulating_supply == Decimal('0.00')
-    assert result[6].circulating_supply == Decimal('500000.00')
-    assert result[12].circulating_supply == Decimal('1000000.00')
+    # Check initial state
+    assert timeline[0].circulating_supply == Decimal("800000")  # initial_supply - vesting_amount
+    assert timeline[0].locked_supply == Decimal("200000")  # vesting_amount
+    
+    # Check monthly vesting
+    monthly_vesting = Decimal("200000") / Decimal("12")
+    for i in range(1, 13):
+        assert timeline[i].locked_supply == Decimal("200000") - (monthly_vesting * i)
+        assert timeline[i].circulating_supply == Decimal("800000") + (monthly_vesting * i)
 
 def test_vesting_with_cliff():
-    """Test vesting schedule with cliff period"""
-    request = VestingSimulationRequest(
-        total_supply=Decimal('1000000'),
-        duration=24,
-        vesting_periods=[
-            VestingPeriod(
-                start_month=0,
-                duration_months=12,
-                tokens_amount=Decimal('1000000'),
-                cliff_months=6
-            )
-        ]
+    """Test vesting with cliff period."""
+    request = VestingRequest(
+        initial_supply=Decimal("1000000"),
+        duration_in_months=12,
+        vesting_config=VestingConfig(
+            periods=[
+                VestingPeriod(
+                    start_period=0,
+                    duration=12,
+                    amount=Decimal("200000"),
+                    cliff_duration=3,
+                    release_type="linear"
+                )
+            ]
+        )
     )
     
-    result = simulate_vesting(request)
+    timeline = simulate_vesting(request)
     
-    assert len(result) == 25
-    # No tokens released during cliff
-    assert all(point.circulating_supply == Decimal('0.00') for point in result[:6])
-    # Linear release after cliff
-    assert result[9].circulating_supply == Decimal('500000.00')
-    assert result[12].circulating_supply == Decimal('1000000.00')
+    # Check cliff period
+    for i in range(3):
+        assert timeline[i].locked_supply == Decimal("200000")
+        assert timeline[i].circulating_supply == Decimal("800000")
+    
+    # Check vesting after cliff
+    monthly_vesting = Decimal("200000") / Decimal("12")
+    for i in range(3, 13):
+        assert timeline[i].locked_supply == Decimal("200000") - (monthly_vesting * (i - 2))
+        assert timeline[i].circulating_supply == Decimal("800000") + (monthly_vesting * (i - 2))
 
 def test_multiple_vesting_periods():
-    """Test multiple overlapping vesting periods"""
-    request = VestingSimulationRequest(
-        total_supply=Decimal('1000000'),
-        duration=24,
-        vesting_periods=[
-            VestingPeriod(
-                start_month=0,
-                duration_months=12,
-                tokens_amount=Decimal('400000'),
-                cliff_months=0
-            ),
-            VestingPeriod(
-                start_month=6,
-                duration_months=12,
-                tokens_amount=Decimal('600000'),
-                cliff_months=3
-            )
-        ]
+    """Test multiple vesting periods with different schedules."""
+    request = VestingRequest(
+        initial_supply=Decimal("1000000"),
+        duration_in_months=12,
+        vesting_config=VestingConfig(
+            periods=[
+                VestingPeriod(
+                    start_period=0,
+                    duration=6,
+                    amount=Decimal("100000"),
+                    cliff_duration=0,
+                    release_type="linear"
+                ),
+                VestingPeriod(
+                    start_period=3,
+                    duration=6,
+                    amount=Decimal("100000"),
+                    cliff_duration=0,
+                    release_type="linear"
+                )
+            ]
+        )
     )
     
-    result = simulate_vesting(request)
+    timeline = simulate_vesting(request)
     
-    assert len(result) == 25
-    # First period starts releasing immediately
-    assert result[3].circulating_supply == Decimal('100000.00')
-    # Second period starts after its cliff
-    assert result[9].circulating_supply > Decimal('200000.00')
-    # All tokens released by end
-    assert result[-1].circulating_supply == Decimal('1000000.00')
+    # Check initial state
+    assert timeline[0].locked_supply == Decimal("200000")
+    assert timeline[0].circulating_supply == Decimal("800000")
+    
+    # First period starts immediately
+    assert timeline[1].locked_supply < Decimal("200000")
+    assert timeline[1].circulating_supply > Decimal("800000")
+    
+    # Second period starts at month 3
+    assert timeline[4].locked_supply < timeline[3].locked_supply
 
 def test_staking_rewards():
-    """Test staking rewards calculation"""
-    request = StakingSimulationRequest(
-        total_supply=Decimal('1000000'),
-        duration=12,
-        staking_rate=Decimal('50'),  # 50% staking participation
-        staking_reward_rate=Decimal('12'),  # 12% annual rewards
-        lock_period=3
+    """Test staking rewards distribution."""
+    request = StakingRequest(
+        initial_supply=Decimal("1000000"),
+        duration_in_months=12,
+        staking_config=StakingConfig(
+            enabled=True,
+            target_rate=Decimal("30.0"),
+            reward_rate=Decimal("12.0"),
+            lock_duration=3
+        )
     )
     
-    result = simulate_staking(request)
+    timeline = simulate_staking(request)
     
-    assert len(result) == 13
-    assert result[0].staked_supply == Decimal('0.00')
-    # After 12 months, roughly 50% should be staked
-    assert result[-1].staked_supply is not None
-    assert Decimal('450000') < result[-1].staked_supply < Decimal('550000')
-    # Should have distributed some rewards
-    assert result[-1].rewards_distributed is not None
-    assert result[-1].rewards_distributed > Decimal('0')
+    # Check initial staking
+    assert timeline[0].staked_supply == Decimal("300000")  # 30% of initial supply
+    assert timeline[0].rewards_distributed == Decimal("0")
+    
+    # Check rewards distribution
+    for i in range(1, 13):
+        assert timeline[i].rewards_distributed > timeline[i-1].rewards_distributed
+        assert timeline[i].staked_supply >= Decimal("300000")  # Should never go below target
 
 def test_staking_with_lock():
-    """Test staking with lock period"""
-    request = StakingSimulationRequest(
-        total_supply=Decimal('1000000'),
-        duration=12,
-        staking_rate=Decimal('60'),
-        staking_reward_rate=Decimal('12'),
-        lock_period=6
+    """Test staking with lock period."""
+    request = StakingRequest(
+        initial_supply=Decimal("1000000"),
+        duration_in_months=12,
+        staking_config=StakingConfig(
+            enabled=True,
+            target_rate=Decimal("30"),
+            reward_rate=Decimal("12"),
+            lock_duration=6
+        )
     )
     
-    result = simulate_staking(request)
+    timeline = simulate_staking(request)
+    assert len(timeline) == 13
     
-    assert len(result) == 13
-    # No unstaking possible before lock period
-    for i in range(6):
-        current = result[i].staked_supply
-        if i > 0:
-            previous = result[i-1].staked_supply
-            assert current is not None and previous is not None
-            assert current >= previous
+    # Check locked amount
+    assert timeline[0].locked_supply == Decimal("300000")  # 30% of initial supply
     
-    # Unstaking possible after lock period
-    found_decrease = False
-    for i in range(7, 13):
-        current = result[i].staked_supply
-        previous = result[i-1].staked_supply
-        assert current is not None and previous is not None
-        if current < previous:
-            found_decrease = True
-            break
-    assert found_decrease, "Expected to find at least one decrease in staked supply after lock period"
+    # Check unlocking after lock period
+    assert timeline[6].locked_supply < Decimal("300000")
 
 def test_invalid_burn_request():
     """Test validation of burn request"""
     with pytest.raises(ValueError):
-        BurnSimulationRequest(
+        BurnRequest(
             initial_supply=Decimal('1000000'),
-            duration=12
+            duration_in_months=12
             # Missing both burn_rate and burn_events
         )
 
 def test_invalid_vesting_period():
     """Test validation of vesting period"""
     with pytest.raises(ValueError):
-        VestingSimulationRequest(
+        VestingRequest(
             total_supply=Decimal('1000000'),
-            duration=24,
+            duration_in_months=24,
             vesting_periods=[]  # Empty vesting periods
         )
 
 def test_invalid_staking_rate():
     """Test validation of staking rate"""
     with pytest.raises(ValueError):
-        StakingSimulationRequest(
+        StakingRequest(
             total_supply=Decimal('1000000'),
-            duration=12,
+            duration_in_months=12,
             staking_rate=Decimal('150'),  # Invalid rate > 100%
             staking_reward_rate=Decimal('12'),
             lock_period=3

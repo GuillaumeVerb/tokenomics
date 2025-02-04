@@ -15,8 +15,8 @@ torch==2.1.1
 pymongo[srv]==4.6.0
 
 # API & Validation
-pydantic==2.5.2
-pydantic-settings==2.1.0
+pydantic>=2.4.2,<3.0.0
+pydantic-settings>=2.0.3,<3.0.0
 requests==2.31.0
 
 # Pour ajouter SQLAlchemy, décommenter les lignes suivantes :

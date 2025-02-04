@@ -30,7 +30,7 @@ os.environ.setdefault("TESTING", "True")
 
 # Import app and settings after path setup
 from app import create_app  # noqa: E402
-from app.config import Settings  # noqa: E402
+from app.core.config import Settings  # noqa: E402
 from app.main import app  # noqa: E402
 
 
@@ -39,9 +39,12 @@ def test_settings():
     """Test settings with a test database and JWT secret."""
     return Settings(
         ENVIRONMENT="test",
+        DEBUG=True,
         JWT_SECRET="test-secret",
         JWT_ALGORITHM="HS256",
-        JWT_EXPIRATION_MINUTES=30
+        JWT_EXPIRATION_MINUTES=30,
+        MONGODB_URL="mongodb://localhost:27017",
+        MONGODB_DB_NAME="tokenomics_test"
     )
 
 @pytest.fixture
