@@ -681,3 +681,102 @@ HTTP Request: POST http://testserver/simulate/scenario "HTTP/1.1 422 Unprocessab
 HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
 {"timestamp": "2025-02-04T20:51:12.251500", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.003872, "client_ip": "testclient", "user_agent": "testclient"}
 HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 401 Unauthorized"
+{"timestamp": "2025-02-04T22:49:59.145619", "method": "POST", "path": "/simulate/constant_inflation", "status_code": 422, "duration": 0.002763, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:49:59.207173", "method": "POST", "path": "/simulate/burn", "status_code": 422, "duration": 0.002797, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/burn "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:49:59.245664", "method": "POST", "path": "/simulate/burn", "status_code": 422, "duration": 0.001973, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/burn "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:49:59.271847", "method": "POST", "path": "/simulate/vesting", "status_code": 422, "duration": 0.002869, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/vesting "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:49:59.300255", "method": "POST", "path": "/simulate/staking", "status_code": 422, "duration": 0.002886, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/staking "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:50:00.220122", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.002378, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:50:00.231740", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.001964, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 401 Unauthorized"
+{"timestamp": "2025-02-04T22:57:46.787547", "method": "POST", "path": "/simulate/constant_inflation", "status_code": 422, "duration": 0.002572, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:57:46.842133", "method": "POST", "path": "/simulate/burn", "status_code": 422, "duration": 0.006972, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/burn "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:57:46.873803", "method": "POST", "path": "/simulate/burn", "status_code": 422, "duration": 0.002517, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/burn "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:57:46.906272", "method": "POST", "path": "/simulate/vesting", "status_code": 422, "duration": 0.001727, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/vesting "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:57:46.935762", "method": "POST", "path": "/simulate/staking", "status_code": 422, "duration": 0.002202, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/staking "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:57:46.971731", "method": "POST", "path": "/simulate/scenario", "status_code": 422, "duration": 0.001525, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/scenario "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:57:47.863159", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.003535, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T22:57:47.876543", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.004191, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 401 Unauthorized"
+{"timestamp": "2025-02-04T23:01:18.557511", "method": "POST", "path": "/simulate/constant_inflation", "status_code": 200, "duration": 0.003167, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:01:18.600221", "method": "POST", "path": "/simulate/burn", "status_code": 200, "duration": 0.003192, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/burn "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:01:18.619091", "method": "POST", "path": "/simulate/burn", "status_code": 200, "duration": 0.003111, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/burn "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:01:18.635195", "method": "POST", "path": "/simulate/vesting", "status_code": 200, "duration": 0.002802, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/vesting "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:01:18.654592", "method": "POST", "path": "/simulate/staking", "status_code": 200, "duration": 0.003948, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/staking "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:01:18.673880", "method": "POST", "path": "/simulate/scenario", "status_code": 422, "duration": 0.003706, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/scenario "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T23:01:20.136274", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.001956, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T23:01:20.151952", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.003967, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 401 Unauthorized"
+{"timestamp": "2025-02-04T23:07:41.095123", "method": "POST", "path": "/simulate/constant_inflation", "status_code": 200, "duration": 0.006808, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:07:41.145004", "method": "POST", "path": "/simulate/burn", "status_code": 200, "duration": 0.002285, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/burn "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:07:41.164163", "method": "POST", "path": "/simulate/burn", "status_code": 200, "duration": 0.006067, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/burn "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:07:41.190473", "method": "POST", "path": "/simulate/vesting", "status_code": 200, "duration": 0.003336, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/vesting "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:07:41.207304", "method": "POST", "path": "/simulate/staking", "status_code": 200, "duration": 0.005134, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/staking "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:07:41.257479", "method": "POST", "path": "/simulate/scenario", "status_code": 422, "duration": 0.004626, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/scenario "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T23:07:42.495267", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.002576, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T23:07:42.511867", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.004854, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 401 Unauthorized"
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 401 Unauthorized"
+{"timestamp": "2025-02-04T23:22:07.712341", "method": "POST", "path": "/simulate/constant_inflation", "status_code": 200, "duration": 0.022533, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/constant_inflation "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:22:07.953444", "method": "POST", "path": "/simulate/burn", "status_code": 200, "duration": 0.004499, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/burn "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:22:07.986386", "method": "POST", "path": "/simulate/burn", "status_code": 200, "duration": 0.005753, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/burn "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:22:08.023278", "method": "POST", "path": "/simulate/vesting", "status_code": 200, "duration": 0.006654, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/vesting "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:22:08.243641", "method": "POST", "path": "/simulate/staking", "status_code": 200, "duration": 0.062704, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/staking "HTTP/1.1 200 OK"
+{"timestamp": "2025-02-04T23:22:08.500396", "method": "POST", "path": "/simulate/scenario", "status_code": 422, "duration": 0.011262, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/scenario "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T23:22:13.588501", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.010116, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"
+{"timestamp": "2025-02-04T23:22:13.616696", "method": "POST", "path": "/simulate/compare", "status_code": 422, "duration": 0.004468, "client_ip": "testclient", "user_agent": "testclient"}
+HTTP Request: POST http://testserver/simulate/compare "HTTP/1.1 422 Unprocessable Entity"

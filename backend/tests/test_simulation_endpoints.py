@@ -76,7 +76,7 @@ def test_constant_inflation_simulation(auth_headers):
     response = client.post(
         '/simulate/constant_inflation',
         headers=auth_headers,
-        json=request.model_dump_json()
+        json=request.model_dump()
     )
     
     assert response.status_code == 200
@@ -96,7 +96,7 @@ def test_constant_inflation_validation(auth_headers):
     response = client.post(
         '/simulate/constant_inflation',
         headers=auth_headers,
-        json=request.model_dump_json()
+        json=request.model_dump()
     )
     assert response.status_code == 422
     
@@ -109,7 +109,7 @@ def test_constant_inflation_validation(auth_headers):
     response = client.post(
         '/simulate/constant_inflation',
         headers=auth_headers,
-        json=request.model_dump_json()
+        json=request.model_dump()
     )
     assert response.status_code == 422
 
@@ -125,7 +125,7 @@ def test_continuous_burn_simulation(auth_headers):
     response = client.post(
         '/simulate/burn',
         headers=auth_headers,
-        json=request.model_dump_json()
+        json=request.model_dump()
     )
     
     assert response.status_code == 200
@@ -147,7 +147,7 @@ def test_event_based_burn_simulation(auth_headers):
     response = client.post(
         '/simulate/burn',
         headers=auth_headers,
-        json=request.model_dump_json()
+        json=request.model_dump()
     )
     
     assert response.status_code == 200
@@ -183,7 +183,7 @@ def test_linear_vesting_simulation(auth_headers):
     response = client.post(
         '/simulate/vesting',
         headers=auth_headers,
-        json=request.model_dump_json()
+        json=request.model_dump()
     )
     
     assert response.status_code == 200
@@ -208,7 +208,7 @@ def test_staking_simulation(auth_headers):
     response = client.post(
         '/simulate/staking',
         headers=auth_headers,
-        json=request.model_dump_json()
+        json=request.model_dump()
     )
     
     assert response.status_code == 200

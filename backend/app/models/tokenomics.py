@@ -64,6 +64,11 @@ class ScenarioRequest(BaseTokenomicsModel):
     vesting_config: Optional[VestingConfig] = Field(default=None, description="Vesting configuration")
     staking_config: Optional[StakingConfig] = Field(default=None, description="Staking configuration")
 
+    @property
+    def duration_in_months(self) -> int:
+        """Get duration in months based on time step."""
+        return self.duration * 12 if self.time_step == "yearly" else self.duration
+
     @model_validator(mode='after')
     def validate_configs(self) -> 'ScenarioRequest':
         """Ensure at least one configuration is provided."""

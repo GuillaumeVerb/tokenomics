@@ -80,12 +80,31 @@ def simulate_vesting(request: VestingRequest) -> List[TokenPoint]:
         rewards_distributed=Decimal('0')
     ))
     
+    # Track vesting state for each period
+    vesting_states = []
+    for period in request.vesting_config.periods:
+        # Calculate monthly vesting amount for linear release
+        if period.cliff_duration > 0:
+            # For periods with cliff, calculate monthly amount after cliff
+            remaining_months = period.duration - period.cliff_duration
+            monthly_amount = (period.amount / Decimal(str(remaining_months))).quantize(Decimal('0.01'))
+        else:
+            # For periods without cliff, simple linear vesting
+            monthly_amount = (period.amount / Decimal(str(period.duration))).quantize(Decimal('0.01'))
+            
+        vesting_states.append({
+            'period': period,
+            'vested_amount': Decimal('0'),
+            'monthly_amount': monthly_amount,
+            'cliff_passed': False
+        })
+    
     # Simulate each month
     for month in range(1, request.duration_in_months + 1):
-        # Calculate vesting for this month
         vested_this_month = Decimal('0')
         
-        for period in request.vesting_config.periods:
+        for state in vesting_states:
+            period = state['period']
             if month < period.start_period:
                 continue
                 
@@ -98,17 +117,20 @@ def simulate_vesting(request: VestingRequest) -> List[TokenPoint]:
                 continue
                 
             if period.release_type == "linear":
-                # Calculate monthly vesting amount
-                monthly_vesting = (
-                    period.amount / Decimal(str(period.duration))
-                ).quantize(Decimal('0.01'))
+                if not state['cliff_passed'] and period.cliff_duration > 0:
+                    # Just passed cliff period, release nothing this month
+                    state['cliff_passed'] = True
+                    continue
                 
-                if months_since_start == period.cliff_duration:
-                    # Release cliff amount plus monthly vesting
-                    vested_this_month += monthly_vesting * (period.cliff_duration + 1)
-                else:
-                    # Regular monthly vesting
-                    vested_this_month += monthly_vesting
+                # Add monthly vesting amount
+                vested_this_month += state['monthly_amount']
+                state['vested_amount'] += state['monthly_amount']
+                
+                # Ensure we don't exceed the period amount
+                if state['vested_amount'] > period.amount:
+                    adjustment = state['vested_amount'] - period.amount
+                    vested_this_month -= adjustment
+                    state['vested_amount'] = period.amount
         
         # Ensure vesting doesn't exceed locked supply
         if vested_this_month > locked_supply:
@@ -175,13 +197,19 @@ def simulate_staking(request: StakingRequest) -> List[TokenPoint]:
         # Calculate how many additional tokens need to be staked
         staking_adjustment = target_staking - staked_supply
         
+        # Try to maintain target staking percentage
         if staking_adjustment > 0:
             # If we have enough circulating supply, stake up to the target
             stake_amount = min(staking_adjustment, circulating_supply)
             staked_supply += stake_amount
             circulating_supply -= stake_amount
+        elif staking_adjustment < 0:
+            # If we're over the target, unstake the excess
+            unstake_amount = min(-staking_adjustment, staked_supply)
+            staked_supply -= unstake_amount
+            circulating_supply += unstake_amount
         
-        # Ensure staking never goes below target
+        # Double-check we're at or above target if possible
         if staked_supply < target_staking and circulating_supply > 0:
             additional_stake = min(target_staking - staked_supply, circulating_supply)
             staked_supply += additional_stake

@@ -8,9 +8,22 @@ from app.models.tokenomics import (
     StakingConfig, VestingPeriod
 )
 
-client = TestClient(app)
+@pytest.fixture
+def client():
+    """Create test client."""
+    with TestClient(app) as client:
+        return client
 
-def test_compare_scenarios(auth_headers):
+@pytest.fixture
+def auth_headers():
+    """Return authentication headers for testing."""
+    return {
+        "Authorization": "Bearer test_token",
+        "Content-Type": "application/json",
+        "user-agent": "testclient"
+    }
+
+def test_compare_scenarios(client, auth_headers):
     """Test basic scenario comparison functionality."""
     request = ComparisonRequest(
         scenarios=[
@@ -49,7 +62,7 @@ def test_compare_scenarios(auth_headers):
     assert data["scenarios"][0]["name"] == "Scenario A"
     assert data["scenarios"][1]["name"] == "Scenario B"
 
-def test_compare_scenarios_with_graph(auth_headers):
+def test_compare_scenarios_with_graph(client, auth_headers):
     """Test scenario comparison with graph generation."""
     request = ComparisonRequest(
         scenarios=[
@@ -90,7 +103,7 @@ def test_compare_scenarios_with_graph(auth_headers):
     assert "data" in data["combined_graph"]
     assert "layout" in data["combined_graph"]
 
-def test_compare_scenarios_validation(auth_headers):
+def test_compare_scenarios_validation(client, auth_headers):
     """Test input validation for scenario comparison."""
     # Test minimum number of scenarios
     request = ComparisonRequest(
@@ -99,7 +112,11 @@ def test_compare_scenarios_validation(auth_headers):
                 name="Scenario A",
                 initial_supply=Decimal("1000000"),
                 time_step="monthly",
-                duration=12
+                duration=12,
+                inflation_config=InflationConfig(
+                    type="constant",
+                    initial_rate=Decimal("5.0")
+                )
             )
         ]
     )
@@ -118,7 +135,11 @@ def test_compare_scenarios_validation(auth_headers):
                 name=f"Scenario {i}",
                 initial_supply=Decimal("1000000"),
                 time_step="monthly",
-                duration=12
+                duration=12,
+                inflation_config=InflationConfig(
+                    type="constant",
+                    initial_rate=Decimal("5.0")
+                )
             )
             for i in range(6)
         ]
@@ -131,7 +152,7 @@ def test_compare_scenarios_validation(auth_headers):
     )
     assert response.status_code == 422
 
-def test_compare_complex_scenarios(auth_headers):
+def test_compare_complex_scenarios(client, auth_headers):
     """Test comparison of scenarios with multiple mechanisms."""
     request = ComparisonRequest(
         scenarios=[
@@ -192,7 +213,7 @@ def test_compare_complex_scenarios(auth_headers):
     data = response.json()
     assert len(data["scenarios"]) == 2
 
-def test_compare_scenarios_error_handling(auth_headers):
+def test_compare_scenarios_error_handling(client, auth_headers):
     """Test error handling in scenario comparison."""
     # Test invalid duration
     request = ComparisonRequest(
@@ -201,13 +222,21 @@ def test_compare_scenarios_error_handling(auth_headers):
                 name="Invalid A",
                 initial_supply=Decimal("1000000"),
                 time_step="monthly",
-                duration=30  # Within limit
+                duration=30,  # Within limit
+                inflation_config=InflationConfig(
+                    type="constant",
+                    initial_rate=Decimal("5.0")
+                )
             ),
             NamedScenarioRequest(
                 name="Invalid B",
                 initial_supply=Decimal("1000000"),
                 time_step="monthly",
-                duration=12
+                duration=12,
+                inflation_config=InflationConfig(
+                    type="constant",
+                    initial_rate=Decimal("10.0")
+                )
             )
         ]
     )
