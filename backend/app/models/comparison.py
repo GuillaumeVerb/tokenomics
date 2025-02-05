@@ -1,11 +1,11 @@
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Any
 
 import plotly.graph_objects as go
 from pydantic import BaseModel, Field
 
 from .base import BaseTokenomicsModel
-from .scenario import PeriodMetrics, ScenarioResponse, ScenarioSummary
+from .tokenomics import PeriodMetrics, ScenarioResponse, ScenarioSummary
 from .tokenomics import ScenarioRequest
 
 
@@ -33,8 +33,8 @@ class ComparisonRequest(BaseTokenomicsModel):
 class ScenarioComparison(BaseTokenomicsModel):
     """Comparison results for a single scenario."""
     name: str = Field(..., description="Name of the scenario")
-    timeline_metrics: List[dict] = Field(..., description="Timeline metrics for the scenario")
-    summary_metrics: dict = Field(..., description="Summary metrics for the scenario")
+    timeline: List[PeriodMetrics] = Field(..., description="Timeline metrics for the scenario")
+    summary: Dict[str, Decimal] = Field(..., description="Summary metrics for the scenario")
 
 class ComparisonSummary(BaseTokenomicsModel):
     """Summary of ranges for various metrics across all scenarios."""
@@ -44,12 +44,12 @@ class ComparisonSummary(BaseTokenomicsModel):
     staked_range: Tuple[float, float] = Field(..., description="Range of total staked tokens")
 
 class PlotlyGraph(BaseTokenomicsModel):
-    """Plotly graph data and layout."""
-    data: List[dict] = Field(..., description="Graph data in Plotly format")
-    layout: dict = Field(..., description="Graph layout in Plotly format")
+    """Plotly graph data for visualization."""
+    data: List[Dict[str, Any]] = Field(..., description="Plotly trace data")
+    layout: Dict[str, Any] = Field(..., description="Plotly layout configuration")
 
 class ComparisonResponse(BaseTokenomicsModel):
     """Response model for scenario comparison."""
-    scenarios: List[ScenarioComparison] = Field(..., description="Results for each scenario")
-    summary: ComparisonSummary = Field(..., description="Summary of ranges across all scenarios")
+    scenarios: List[Dict[str, Any]] = Field(..., description="Results for each scenario")
+    comparison_summary: ComparisonSummary = Field(..., description="Summary of ranges across all scenarios")
     combined_graph: Optional[PlotlyGraph] = Field(None, description="Combined graph of all scenarios") 

@@ -7,13 +7,12 @@ from app.models.tokenomics import (
     BurnRequest, VestingRequest, StakingRequest,
     TokenPoint, SimulationResponse, ScenarioRequest,
     ScenarioResponse, PeriodMetrics, ComparisonRequest,
-    ComparisonResponse, ScenarioSummary, ComparisonSummary
+    BurnConfig, VestingConfig, ScenarioSummary
 )
-from app.models.scenario import ScenarioRequest, ScenarioResponse, PeriodMetrics
-from app.models.comparison import (
-    ComparisonRequest, ComparisonResponse,
-    ScenarioComparison, ComparisonSummary, PlotlyGraph
+from app.models.scenario import (
+    NamedScenarioRequest, ScenarioComparison
 )
+from app.models.comparison import PlotlyGraph, ComparisonResponse, ComparisonSummary
 from app.services.token_simulation_service import (
     simulate_burn, simulate_vesting, simulate_staking
 )
@@ -181,12 +180,13 @@ async def simulate_tokenomics_scenario(request: ScenarioRequest):
                         # Linear release after cliff
                         remaining_months = period.duration - period.cliff_duration
                         if remaining_months > 0:
-                            monthly_amount = (
-                                period.amount * 
-                                (1 - Decimal(str(period.cliff_duration)) / Decimal(str(period.duration))) /
-                                Decimal(str(remaining_months))
+                            # Calculate monthly amount based on remaining tokens after cliff
+                            remaining_tokens = period.amount * (
+                                1 - Decimal(str(period.cliff_duration)) / 
+                                Decimal(str(period.duration))
                             )
-                            period_vested += monthly_amount
+                            monthly_amount = remaining_tokens / Decimal(str(remaining_months))
+                            period_vested += monthly_amount.quantize(Decimal('0.01'))
         
         # Ensure vesting doesn't exceed locked supply
         if period_vested > locked_supply:
@@ -212,10 +212,18 @@ async def simulate_tokenomics_scenario(request: ScenarioRequest):
             staking_adjustment = target_staking - staked_supply
             
             if staking_adjustment > 0:
+                # Ensure we don't exceed available circulating supply
                 stake_amount = min(staking_adjustment, circulating_supply)
                 staked_supply += stake_amount
                 circulating_supply -= stake_amount
                 locked_supply += stake_amount
+            elif staking_adjustment < 0 and month > request.staking_config.lock_duration:
+                # Only allow unstaking down to target amount
+                unstake_amount = min(-staking_adjustment, staked_supply - target_staking)
+                if unstake_amount > 0:
+                    staked_supply -= unstake_amount
+                    circulating_supply += unstake_amount
+                    locked_supply -= unstake_amount
         
         # Record period metrics
         timeline.append(PeriodMetrics(
@@ -231,7 +239,7 @@ async def simulate_tokenomics_scenario(request: ScenarioRequest):
         ))
     
     # Calculate summary
-    supply_change = ((total_supply - request.initial_supply) / request.initial_supply * 100)
+    supply_change = ((total_supply - request.initial_supply) / request.initial_supply * Decimal('100')).quantize(Decimal('0.01'))
     
     summary = ScenarioSummary(
         final_supply=total_supply,
@@ -241,10 +249,14 @@ async def simulate_tokenomics_scenario(request: ScenarioRequest):
         total_staking_rewards=total_staking_rewards,
         current_staked=staked_supply,
         current_locked=locked_supply,
-        supply_change_percentage=supply_change
+        supply_change_percentage=min(supply_change, Decimal('100'))
     )
     
-    return ScenarioResponse(timeline=timeline, summary=summary)
+    return ScenarioResponse(
+        timeline=timeline,
+        summary=summary.model_dump(),
+        simulation_data=None
+    )
 
 @router.post("/compare", response_model=ComparisonResponse)
 async def compare_scenarios(request: ComparisonRequest):
@@ -255,64 +267,35 @@ async def compare_scenarios(request: ComparisonRequest):
         result = await simulate_tokenomics_scenario(scenario_request)
         if not result:
             continue
-            
-        # Convert timeline to PeriodMetrics list
-        timeline = []
-        for point in result.timeline:
-            timeline.append(PeriodMetrics(
-                period=point.period,
-                total_supply=point.total_supply,
-                circulating_supply=point.circulating_supply,
-                minted_amount=point.minted_amount,
-                burned_amount=point.burned_amount,
-                vested_amount=point.vested_amount,
-                staked_amount=point.staked_amount,
-                staking_rewards=point.staking_rewards,
-                locked_amount=point.locked_amount
-            ))
         
-        # Calculate summary from the last point
-        last_point = result.timeline[-1]
-        initial_supply = result.timeline[0].total_supply
-        final_supply = last_point.total_supply
-        
-        summary = {
-            'final_supply': final_supply,
-            'total_minted': last_point.minted_amount,
-            'total_burned': last_point.burned_amount,
-            'current_staked': last_point.staked_amount,
-            'supply_change_percentage': (
-                ((final_supply - initial_supply) / initial_supply * Decimal('100'))
-                if initial_supply > Decimal('0') else Decimal('0')
-            ).quantize(Decimal('0.01'))
+        # Convert SimulationResponse to dictionary format
+        scenario_dict = {
+            "name": scenario_request.name,
+            "timeline": result.timeline,
+            "summary": result.summary.model_dump()
         }
-        
-        scenarios.append(ScenarioComparison(
-            name=scenario_request.name,
-            timeline=timeline,
-            summary=summary
-        ))
-    
+        scenarios.append(scenario_dict)
+            
     if not scenarios:
         raise HTTPException(status_code=400, detail="No valid scenarios to compare")
     
     # Calculate comparison summary
-    supply_range = {
-        'min': min(s.summary['final_supply'] for s in scenarios),
-        'max': max(s.summary['final_supply'] for s in scenarios)
-    }
-    minted_range = {
-        'min': min(s.summary['total_minted'] for s in scenarios),
-        'max': max(s.summary['total_minted'] for s in scenarios)
-    }
-    burned_range = {
-        'min': min(s.summary['total_burned'] for s in scenarios),
-        'max': max(s.summary['total_burned'] for s in scenarios)
-    }
-    staked_range = {
-        'min': min(s.summary['current_staked'] for s in scenarios),
-        'max': max(s.summary['current_staked'] for s in scenarios)
-    }
+    supply_range = (
+        min(float(s['summary']['final_supply']) for s in scenarios),
+        max(float(s['summary']['final_supply']) for s in scenarios)
+    )
+    minted_range = (
+        min(float(s['summary']['total_minted']) for s in scenarios),
+        max(float(s['summary']['total_minted']) for s in scenarios)
+    )
+    burned_range = (
+        min(float(s['summary']['total_burned']) for s in scenarios),
+        max(float(s['summary']['total_burned']) for s in scenarios)
+    )
+    staked_range = (
+        min(float(s['summary']['current_staked']) for s in scenarios),
+        max(float(s['summary']['current_staked']) for s in scenarios)
+    )
     
     comparison_summary = ComparisonSummary(
         supply_range=supply_range,
@@ -321,8 +304,39 @@ async def compare_scenarios(request: ComparisonRequest):
         staked_range=staked_range
     )
     
+    # Generate combined graph if requested
+    combined_graph = None
+    if request.return_combined_graph:
+        combined_graph = generate_comparison_graph(scenarios, request.metrics_to_graph)
+    
     return ComparisonResponse(
         scenarios=scenarios,
-        summary=comparison_summary,
-        combined_graph=None
-    ) 
+        comparison_summary=comparison_summary,
+        combined_graph=combined_graph
+    )
+
+def generate_comparison_graph(scenarios: List[Dict], metrics_to_graph: Optional[List[str]] = None) -> PlotlyGraph:
+    """Generate a combined graph for scenario comparison."""
+    if not metrics_to_graph:
+        metrics_to_graph = ['total_supply', 'circulating_supply']
+    
+    data = []
+    for scenario in scenarios:
+        for metric in metrics_to_graph:
+            trace = {
+                'x': [point.period for point in scenario['timeline']],
+                'y': [getattr(point, metric) for point in scenario['timeline']],
+                'name': f"{scenario['name']} - {metric}",
+                'type': 'scatter',
+                'mode': 'lines'
+            }
+            data.append(trace)
+    
+    layout = {
+        'title': 'Scenario Comparison',
+        'xaxis': {'title': 'Period'},
+        'yaxis': {'title': 'Amount'},
+        'showlegend': True
+    }
+    
+    return PlotlyGraph(data=data, layout=layout) 

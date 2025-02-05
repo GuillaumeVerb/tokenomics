@@ -146,12 +146,6 @@ class ComparisonSummary(BaseTokenomicsModel):
     burned_range: dict = Field(..., description="Range of total burned amounts")
     staked_range: dict = Field(..., description="Range of staked amounts")
 
-class ComparisonResponse(BaseTokenomicsModel):
-    """Response model for scenario comparison."""
-    scenarios: List[SimulationResponse] = Field(default=..., description="Results for each scenario")
-    summary: ComparisonSummary = Field(..., description="Summary of key differences")
-    combined_graph: Optional[dict] = Field(default=None, description="Combined Plotly graph data")
-
 class ConstantInflationRequest(BaseTokenomicsModel):
     """Request model for constant inflation simulation."""
     initial_supply: Decimal = Field(..., gt=0, description="Initial token supply")
@@ -168,7 +162,7 @@ class SupplyPoint(BaseTokenomicsModel):
 class InflationSimulationResponse(BaseTokenomicsModel):
     simulation_data: List[SupplyPoint] = Field(default=...)
     total_supply_increase: Decimal = Field(default=..., gt=0)
-    total_supply_increase_percentage: Decimal = Field(default=..., ge=0, le=100)
+    total_supply_increase_percentage: Decimal = Field(default=..., ge=0)
 
 class BurnRequest(BaseTokenomicsModel):
     """Request model for token burn simulation."""
@@ -213,6 +207,7 @@ class ScenarioResponse(BaseTokenomicsModel):
     """Response model for scenario simulation."""
     timeline: List[PeriodMetrics] = Field(..., description="Timeline of token metrics")
     summary: ScenarioSummary = Field(..., description="Summary of simulation results")
+    simulation_data: Optional[List[TokenPoint]] = Field(None, description="Raw simulation data points")
 
     model_config = ConfigDict(
         json_encoders={Decimal: str},

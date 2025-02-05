@@ -49,12 +49,7 @@ def simulate_vesting(request: VestingRequest) -> List[TokenPoint]:
     for period in request.vesting_config.periods:
         # Calculate monthly vesting amount for linear distribution after cliff
         remaining_months = period.duration - period.cliff_duration
-        if remaining_months > 0:
-            # Calculate monthly amount based on remaining months after cliff
-            monthly_amount = period.amount / Decimal(str(remaining_months))
-        else:
-            # If no remaining months, all tokens are released at cliff
-            monthly_amount = period.amount
+        monthly_amount = period.amount / Decimal(str(period.duration))
 
         # Lock tokens initially
         locked_supply += period.amount
@@ -64,28 +59,26 @@ def simulate_vesting(request: VestingRequest) -> List[TokenPoint]:
         if period.cliff_duration > 0:
             cliff_month = period.start_period + period.cliff_duration
             if cliff_month <= request.duration_in_months:
-                if remaining_months > 0:
-                    # No tokens released at cliff - they will be released linearly
-                    pass
-                else:
-                    # Release all tokens at cliff if no linear vesting
-                    vesting_schedule[cliff_month] += period.amount
+                cliff_amount = monthly_amount * Decimal(str(period.cliff_duration))
+                vesting_schedule[cliff_month] += cliff_amount
 
         # Add linear vesting after cliff
-        if remaining_months > 0:
-            start = period.start_period + period.cliff_duration + 1
-            end = min(period.start_period + period.duration, request.duration_in_months)
-            for month in range(start, end + 1):
-                vesting_schedule[month] += monthly_amount
+        start = period.start_period + period.cliff_duration + (1 if period.cliff_duration > 0 else 0)
+        end = min(period.start_period + period.duration, request.duration_in_months)
+        for month in range(start, end + 1):
+            vesting_schedule[month] += monthly_amount
 
     # Generate simulation data
     simulation_data = []
     vested_amount = Decimal('0')
     for month in range(request.duration_in_months + 1):
         if month > 0:
-            vested_amount = vesting_schedule[month]
-            locked_supply -= vested_amount
-            circulating_supply += vested_amount
+            vested_this_month = vesting_schedule[month]
+            if vested_this_month > locked_supply:
+                vested_this_month = locked_supply
+            locked_supply -= vested_this_month
+            circulating_supply += vested_this_month
+            vested_amount += vested_this_month
 
         simulation_data.append(
             TokenPoint(
@@ -94,7 +87,8 @@ def simulate_vesting(request: VestingRequest) -> List[TokenPoint]:
                 locked_supply=locked_supply.quantize(Decimal('0.01')),
                 burned_supply=None,
                 staked_supply=None,
-                rewards_distributed=None
+                rewards_distributed=None,
+                total_supply=None
             )
         )
 
@@ -107,6 +101,7 @@ def simulate_staking(request: StakingRequest) -> List[TokenPoint]:
     staked_supply = Decimal('0')
     locked_supply = Decimal('0')
     rewards_distributed = Decimal('0')
+    total_supply = request.initial_supply
     
     # Calculate target staking amount
     target_staking = request.initial_supply * request.staking_config.target_rate / Decimal('100')
@@ -126,14 +121,33 @@ def simulate_staking(request: StakingRequest) -> List[TokenPoint]:
             # Calculate and distribute rewards
             monthly_rewards = staked_supply * monthly_reward_rate / Decimal('100')
             rewards_distributed += monthly_rewards
+            total_supply += monthly_rewards
             circulating_supply += monthly_rewards
+            
+            # Update target based on new total supply
+            target_staking = total_supply * request.staking_config.target_rate / Decimal('100')
             
             # Handle unlocking after lock period
             if month >= request.staking_config.lock_duration:
-                unlock_amount = staked_supply * Decimal('0.1')  # 10% monthly unlock rate
-                staked_supply -= unlock_amount
-                locked_supply -= unlock_amount
-                circulating_supply += unlock_amount
+                # Only allow unstaking if we're above target
+                if staked_supply > target_staking:
+                    unstake_amount = min(
+                        staked_supply - target_staking,  # Don't go below target
+                        staked_supply * Decimal('0.1')  # Max 10% monthly unlock rate
+                    )
+                    staked_supply -= unstake_amount
+                    locked_supply -= unstake_amount
+                    circulating_supply += unstake_amount
+            
+            # Ensure we maintain target staking
+            if staked_supply < target_staking:
+                stake_amount = min(
+                    target_staking - staked_supply,  # How much needed to reach target
+                    circulating_supply  # Limited by available supply
+                )
+                staked_supply += stake_amount
+                locked_supply += stake_amount
+                circulating_supply -= stake_amount
         
         simulation_data.append(
             TokenPoint(
@@ -142,7 +156,8 @@ def simulate_staking(request: StakingRequest) -> List[TokenPoint]:
                 locked_supply=locked_supply.quantize(Decimal('0.01')),
                 burned_supply=None,
                 staked_supply=staked_supply.quantize(Decimal('0.01')),
-                rewards_distributed=rewards_distributed.quantize(Decimal('0.01'))
+                rewards_distributed=rewards_distributed.quantize(Decimal('0.01')),
+                total_supply=total_supply.quantize(Decimal('0.01'))
             )
         )
     
