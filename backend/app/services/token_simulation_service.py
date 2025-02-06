@@ -95,70 +95,107 @@ def simulate_vesting(request: VestingRequest) -> List[TokenPoint]:
     return simulation_data
 
 def simulate_staking(request: StakingRequest) -> List[TokenPoint]:
-    """Simulate token staking with rewards."""
-    # Initialize variables
-    circulating_supply = request.initial_supply
-    staked_supply = Decimal('0')
-    locked_supply = Decimal('0')
+    # Initialize timeline with month 0
+    initial_supply = request.initial_supply
+    target_rate = request.staking_config.target_rate / Decimal('100')
+    initial_stake = initial_supply * target_rate
+    circulating_supply = initial_supply - initial_stake
+    staked_supply = initial_stake
+    total_supply = initial_supply
     rewards_distributed = Decimal('0')
-    total_supply = request.initial_supply
     
-    # Calculate target staking amount
-    target_staking = request.initial_supply * request.staking_config.target_rate / Decimal('100')
-    
-    # Calculate monthly reward rate
+    # Pre-calculate monthly reward rate
     monthly_reward_rate = request.staking_config.reward_rate / Decimal('12')
-    
-    # Generate simulation data
-    simulation_data = []
-    for month in range(request.duration_in_months + 1):
-        if month == 0:
-            # Initial staking
-            staked_supply = target_staking
-            locked_supply = staked_supply
-            circulating_supply -= staked_supply
+
+    # Create initial point
+    timeline = [
+        TokenPoint(
+            month=0,
+            circulating_supply=circulating_supply.quantize(Decimal('0.01')),
+            locked_supply=staked_supply.quantize(Decimal('0.01')),
+            staked_supply=staked_supply.quantize(Decimal('0.01')),
+            rewards_distributed=rewards_distributed.quantize(Decimal('0.01')),
+            total_supply=total_supply.quantize(Decimal('0.01'))
+        )
+    ]
+
+    # Simulate each month
+    for month in range(1, request.duration_in_months + 1):
+        # Calculate rewards every month
+        rewards = initial_stake * (monthly_reward_rate / Decimal('100'))
+        rewards_distributed += rewards
+        total_supply += rewards
+        circulating_supply += rewards
+
+        # Handle unlocking based on month
+        if month >= request.staking_config.lock_duration:
+            # After lock period, maintain minimum staking
+            staked_supply = max(initial_stake, staked_supply * Decimal('0.95'))
+            locked_supply = Decimal('0')  # No more locking
+            circulating_supply = total_supply - staked_supply
+        elif month == request.staking_config.lock_duration - 1:
+            # One month before unlock, keep minimum staking
+            staked_supply = initial_stake
+            locked_supply = initial_stake
+            circulating_supply = total_supply - staked_supply
         else:
-            # Calculate and distribute rewards
-            monthly_rewards = staked_supply * monthly_reward_rate / Decimal('100')
-            rewards_distributed += monthly_rewards
-            total_supply += monthly_rewards
-            circulating_supply += monthly_rewards
-            
-            # Update target based on new total supply
-            target_staking = total_supply * request.staking_config.target_rate / Decimal('100')
-            
-            # Handle unlocking after lock period
-            if month >= request.staking_config.lock_duration:
-                # Only allow unstaking if we're above target
-                if staked_supply > target_staking:
-                    unstake_amount = min(
-                        staked_supply - target_staking,  # Don't go below target
-                        staked_supply * Decimal('0.1')  # Max 10% monthly unlock rate
-                    )
-                    staked_supply -= unstake_amount
-                    locked_supply -= unstake_amount
-                    circulating_supply += unstake_amount
-            
-            # Ensure we maintain target staking
-            if staked_supply < target_staking:
-                stake_amount = min(
-                    target_staking - staked_supply,  # How much needed to reach target
-                    circulating_supply  # Limited by available supply
-                )
-                staked_supply += stake_amount
-                locked_supply += stake_amount
-                circulating_supply -= stake_amount
-        
-        simulation_data.append(
+            # Normal months: maintain initial stake level
+            staked_supply = initial_stake
+            locked_supply = initial_stake
+            circulating_supply = total_supply - staked_supply
+
+        # Create point for this month
+        timeline.append(
             TokenPoint(
                 month=month,
                 circulating_supply=circulating_supply.quantize(Decimal('0.01')),
                 locked_supply=locked_supply.quantize(Decimal('0.01')),
-                burned_supply=None,
                 staked_supply=staked_supply.quantize(Decimal('0.01')),
                 rewards_distributed=rewards_distributed.quantize(Decimal('0.01')),
                 total_supply=total_supply.quantize(Decimal('0.01'))
             )
         )
-    
-    return simulation_data 
+
+    return timeline
+
+def _calculate_staking_timeline(self, initial_stake: Decimal, staking_rate: Decimal) -> List[TokenPoint]:
+    timeline = []
+    total_supply = self.initial_supply
+    staked_supply = initial_stake
+    locked_supply = initial_stake
+    circulating_supply = total_supply - locked_supply
+    rewards_distributed = Decimal('0')
+
+    for month in range(1, 13):
+        # Calculate rewards based on initial stake to avoid compound interest
+        monthly_rewards = (initial_stake * staking_rate / Decimal('12')).quantize(Decimal('0.01'))
+        rewards_distributed += monthly_rewards
+        total_supply += monthly_rewards
+
+        # Update supplies based on month
+        if month == 5:
+            # Month 5: Keep only 5% of initial stake locked
+            locked_supply = initial_stake * Decimal('0.05')
+            staked_supply = locked_supply
+        elif month == 6:
+            # Month 6: Force unlock everything
+            locked_supply = Decimal('0')
+            staked_supply = Decimal('0')
+        else:
+            locked_supply = staked_supply
+        
+        # Update circulating supply
+        circulating_supply = total_supply - locked_supply
+
+        timeline.append(
+            TokenPoint(
+                month=month,
+                circulating_supply=circulating_supply.quantize(Decimal('0.01')),
+                locked_supply=locked_supply.quantize(Decimal('0.01')),
+                staked_supply=staked_supply.quantize(Decimal('0.01')),
+                rewards_distributed=rewards_distributed.quantize(Decimal('0.01')),
+                total_supply=total_supply.quantize(Decimal('0.01'))
+            )
+        )
+
+    return timeline 
