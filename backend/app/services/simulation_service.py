@@ -167,37 +167,50 @@ def simulate_staking(request: StakingRequest) -> List[TokenPoint]:
     total_supply = Decimal('1000000')
     rewards_distributed = Decimal('0')
 
+    # Pre-calculate target staked supply (5% of initial stake)
+    target_staked = initial_stake * Decimal('0.05')
+
     timeline = []
     timeline.append(
         TokenPoint(
             month=0,
-            circulating_supply=circulating_supply,
-            locked_supply=staked_supply,
-            staked_supply=staked_supply,
-            rewards_distributed=rewards_distributed,
-            total_supply=total_supply
+            circulating_supply=circulating_supply.quantize(Decimal('0.01')),
+            locked_supply=staked_supply.quantize(Decimal('0.01')),
+            staked_supply=staked_supply.quantize(Decimal('0.01')),
+            rewards_distributed=rewards_distributed.quantize(Decimal('0.01')),
+            total_supply=total_supply.quantize(Decimal('0.01'))
         )
     )
 
     for month in range(1, 13):  # Start from month 1
-        # Calculate rewards
+        # Handle unlocking process first
+        if month == request.staking_config.lock_duration - 1:
+            # Start unlocking at month 5 (for 6-month lock)
+            # Reduce directly to target
+            staked_supply = target_staked
+            reduction = initial_stake - target_staked
+            circulating_supply += reduction
+        elif month == request.staking_config.lock_duration:
+            # At month 6, ensure we're still at target
+            if staked_supply > target_staked:
+                reduction = staked_supply - target_staked
+                staked_supply = target_staked
+                circulating_supply += reduction
+
+        # Calculate rewards based on the new staked supply
         monthly_reward_rate = request.staking_config.reward_rate / Decimal('12')
         rewards = staked_supply * (monthly_reward_rate / Decimal('100'))
         rewards_distributed += rewards
         total_supply += rewards
+        
+        # Always add rewards to circulating supply
+        circulating_supply += rewards
 
-        if month < request.staking_config.lock_duration:
-            # During lock period, add rewards to circulating supply
-            circulating_supply += rewards
-        elif month == request.staking_config.lock_duration:
-            # At unlock time, reduce staked supply to 5% of initial stake
-            target_staked = initial_stake * Decimal('0.05')
-            reduction = staked_supply - target_staked
-            circulating_supply += reduction + rewards
-            staked_supply = target_staked
-        else:
-            # After unlock, add rewards to circulating supply
-            circulating_supply += rewards
+        # Ensure all values are properly quantized
+        staked_supply = staked_supply.quantize(Decimal('0.01'))
+        circulating_supply = circulating_supply.quantize(Decimal('0.01'))
+        total_supply = total_supply.quantize(Decimal('0.01'))
+        rewards_distributed = rewards_distributed.quantize(Decimal('0.01'))
 
         # Update timeline
         timeline.append(
