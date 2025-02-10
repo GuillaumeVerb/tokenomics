@@ -1,4 +1,5 @@
 from functools import lru_cache
+import os
 from typing import Optional, Union, List
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -12,6 +13,26 @@ class Settings(BaseSettings):
     PORT: int = 8000
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8501"
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5000"
+    
+    # API Keys (optional in test environment)
+    NEXT_PUBLIC_SUPABASE_URL: Optional[str] = None
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: Optional[str] = None
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: Optional[str] = None
+    NEXT_PUBLIC_OPENAI_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = None
+    
+    # Firebase Configuration (optional in test environment)
+    FIREBASE_PROJECT_ID: Optional[str] = None
+    FIREBASE_CLIENT_EMAIL: Optional[str] = None
+    FIREBASE_PRIVATE_KEY: Optional[str] = None
+    NEXT_PUBLIC_FIREBASE_API_KEY: Optional[str] = None
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: Optional[str] = None
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID: Optional[str] = None
+    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: Optional[str] = None
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: Optional[str] = None
+    NEXT_PUBLIC_FIREBASE_APP_ID: Optional[str] = None
+    NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: Optional[str] = None
+    NEXT_PUBLIC_FIREBASE_VAPID_KEY: Optional[str] = None
     
     # Flask Settings
     FLASK_ENV: str = "development"
@@ -60,11 +81,16 @@ class Settings(BaseSettings):
     MYPYPATH: Optional[str] = None
     
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=os.getenv("ENV_FILE", ".env"),
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="allow"  # Allow extra fields from environment variables
     )
+
+    @property
+    def is_test(self) -> bool:
+        """Check if we are in test environment."""
+        return self.ENVIRONMENT == "test"
 
 
 @lru_cache()

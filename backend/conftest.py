@@ -28,6 +28,9 @@ if VENV_DIR.exists():
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("TESTING", "True")
 
+# Set the env file path for testing
+os.environ["ENV_FILE"] = str(ROOT_DIR / ".env.test")
+
 # Import app and settings after path setup
 from app import create_app  # noqa: E402
 from app.core.config import Settings  # noqa: E402
@@ -38,6 +41,7 @@ from app.main import app  # noqa: E402
 def test_settings():
     """Test settings with a test database and JWT secret."""
     return Settings(
+        _env_file=".env.test",  # Use test environment file
         ENVIRONMENT="test",
         DEBUG=True,
         JWT_SECRET="test-secret",
@@ -55,8 +59,8 @@ def app(test_settings):
     return app
 
 @pytest.fixture
-def client():
-    """Create a test client for the FastAPI application."""
+def client(app):
+    """Create test client."""
     return TestClient(app)
 
 @pytest.fixture
