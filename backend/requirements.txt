@@ -26,8 +26,6 @@ email-validator>=2.0.0
 # alembic==1.12.1        # Pour les migrations
 python-dotenv==1.0.0
 pycoingecko==3.1.0
-apache-airflow==2.7.3
-apache-airflow-providers-http==4.6.0
 
 # Type Checking
 typing-extensions>=4.8.0
