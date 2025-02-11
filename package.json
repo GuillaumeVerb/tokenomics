@@ -1,4 +1,16 @@
 {
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.5.1",
+    "jwt-decode": "^4.0.0",
+    "react-redux": "^9.2.0",
+    "socket.io-client": "^4.8.1",
+    "immer": "^10.1.1",
+    "redux": "^5.0.1",
+    "redux-thunk": "^3.1.0",
+    "reselect": "^5.1.1",
+    "@types/use-sync-external-store": "^0.0.6",
+    "use-sync-external-store": "^1.4.0"
+  },
   "devDependencies": {
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
