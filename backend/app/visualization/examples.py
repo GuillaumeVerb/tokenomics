@@ -1,8 +1,11 @@
 """
 Examples of using the visualization utilities.
 """
+
 from decimal import Decimal
+
 from .supply import plot_supply_evolution
+
 
 def example_supply_plot():
     # Example data
@@ -10,10 +13,10 @@ def example_supply_plot():
         {"month": i, "circulating_supply": Decimal(1000000 * (1 + i * 0.1))}
         for i in range(25)
     ]
-    
+
     # Example 1: Basic plot with default settings
     basic_plot = plot_supply_evolution(data)
-    
+
     # Example 2: Customized plot with different colors and custom annotations
     custom_plot = plot_supply_evolution(
         data,
@@ -27,20 +30,21 @@ def example_supply_plot():
                 "x": 6,
                 "y": float(data[6]["circulating_supply"]),
                 "text": "Exchange Listing",
-                "color": "#2ecc71"  # Green annotation
+                "color": "#2ecc71",  # Green annotation
             },
             {
                 "x": 12,
                 "y": float(data[12]["circulating_supply"]),
                 "text": "Token Burn Event",
-                "color": "#e67e22"  # Orange annotation
-            }
+                "color": "#e67e22",  # Orange annotation
+            },
         ],
         height=700,
-        template="plotly_dark"  # Dark theme
+        template="plotly_dark",  # Dark theme
     )
-    
+
     return basic_plot, custom_plot
+
 
 # Usage in FastAPI endpoint
 """
@@ -75,4 +79,4 @@ def show_supply_charts():
     
     st.subheader("Customized Chart")
     st.plotly_chart(go.Figure(custom_plot), use_container_width=True)
-""" 
+"""

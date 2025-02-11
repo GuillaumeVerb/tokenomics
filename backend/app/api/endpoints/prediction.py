@@ -1,25 +1,28 @@
 """
 Prediction endpoints for supply forecasting.
 """
+
 from fastapi import APIRouter, HTTPException
+
 from ...models.prediction import PredictionRequest, PredictionResponse
 from ...services.prediction import PredictionService
 
 router = APIRouter()
 
+
 @router.post("/predict", response_model=PredictionResponse)
 async def predict_supply(request: PredictionRequest):
     """
     Predict future token supply using various models.
-    
+
     This endpoint accepts historical supply data and returns predictions using the specified model.
     Supported models are:
     - Prophet (Facebook's time series forecasting tool)
     - ARIMA (Classical statistical forecasting)
     - LSTM (Deep learning based forecasting)
-    
+
     The response includes predictions with confidence intervals and model performance metrics.
-    
+
     Example request:
     ```json
     {
@@ -38,7 +41,7 @@ async def predict_supply(request: PredictionRequest):
         "confidence_interval": 0.95
     }
     ```
-    
+
     Returns:
     ```json
     {
@@ -68,17 +71,14 @@ async def predict_supply(request: PredictionRequest):
             data=request.historical_data,
             model_type=request.model_type,
             forecast_years=request.forecast_years,
-            confidence_interval=request.confidence_interval
+            confidence_interval=request.confidence_interval,
         )
-        
+
         return PredictionResponse(
             forecast=predictions,
             model_type=request.model_type,
             model_params=model_params,
-            metrics=metrics
+            metrics=metrics,
         )
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Prediction failed: {str(e)}"
-        ) 
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")

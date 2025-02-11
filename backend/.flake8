@@ -1,0 +1,27 @@
+[flake8]
+max-line-length = 88
+extend-ignore = E203,W293,F401,E302,E305,E722
+exclude =
+    .git,
+    __pycache__,
+    build,
+    dist,
+    *.pyc,
+    *.egg-info,
+    .eggs,
+    .tox,
+    .venv,
+    venv,
+    */migrations/*
+per-file-ignores =
+    __init__.py: F401
+    tests/*: E501
+    app/services/*: C901,E501
+    app/api/endpoints/*: E501
+    app/models/*: E501
+    app/visualization/*: E501
+    app/routers/*: C901,E501
+    app/routes/*: C901,E501
+max-complexity = 15
+statistics = True
+count = True 

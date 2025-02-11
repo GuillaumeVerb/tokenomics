@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
+
 def configure_openapi_docs(app: FastAPI) -> None:
     """Configure the OpenAPI documentation for the FastAPI application."""
+
     def custom_openapi():
         if app.openapi_schema:
             return app.openapi_schema
@@ -23,33 +25,28 @@ def configure_openapi_docs(app: FastAPI) -> None:
 
         # Ajout des tags
         openapi_schema["tags"] = [
-            {
-                "name": "Simulation",
-                "description": "Endpoints de simulation tokenomics"
-            }
+            {"name": "Simulation", "description": "Endpoints de simulation tokenomics"}
         ]
 
         # Définition des composants de sécurité
         openapi_schema["components"]["securitySchemes"] = {
-            "bearerAuth": {
-                "type": "http",
-                "scheme": "bearer",
-                "bearerFormat": "JWT"
-            }
+            "bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
         }
 
         # Documentation des modèles
-        openapi_schema["components"]["schemas"].update({
-            "HTTPError": {
-                "type": "object",
-                "properties": {
-                    "detail": {
-                        "type": "string",
-                        "description": "Description détaillée de l'erreur"
-                    }
+        openapi_schema["components"]["schemas"].update(
+            {
+                "HTTPError": {
+                    "type": "object",
+                    "properties": {
+                        "detail": {
+                            "type": "string",
+                            "description": "Description détaillée de l'erreur",
+                        }
+                    },
                 }
             }
-        })
+        )
 
         # Documentation des endpoints
         openapi_schema["paths"]["/simulate/constant_inflation"] = {
@@ -73,18 +70,18 @@ def configure_openapi_docs(app: FastAPI) -> None:
                                 "example": {
                                     "simulation_data": [
                                         {"year": 0, "supply": 1000000},
-                                        {"year": 1, "supply": 1050000}
+                                        {"year": 1, "supply": 1050000},
                                     ],
                                     "total_supply_increase": 50000,
-                                    "total_supply_increase_percentage": 5.0
+                                    "total_supply_increase_percentage": 5.0,
                                 }
                             }
-                        }
+                        },
                     },
                     "400": {"$ref": "#/components/schemas/HTTPError"},
                     "401": {"description": "Non authentifié"},
-                    "403": {"description": "Non autorisé"}
-                }
+                    "403": {"description": "Non autorisé"},
+                },
             }
         }
 
@@ -107,26 +104,18 @@ def configure_openapi_docs(app: FastAPI) -> None:
                             "application/json": {
                                 "example": {
                                     "simulation_data": [
-                                        {
-                                            "month": 0,
-                                            "supply": 1000000,
-                                            "burned": 0
-                                        },
-                                        {
-                                            "month": 1,
-                                            "supply": 990000,
-                                            "burned": 10000
-                                        }
+                                        {"month": 0, "supply": 1000000, "burned": 0},
+                                        {"month": 1, "supply": 990000, "burned": 10000},
                                     ],
-                                    "total_burned": 10000
+                                    "total_burned": 10000,
                                 }
                             }
-                        }
+                        },
                     },
                     "400": {"$ref": "#/components/schemas/HTTPError"},
                     "401": {"description": "Non authentifié"},
-                    "403": {"description": "Non autorisé"}
-                }
+                    "403": {"description": "Non autorisé"},
+                },
             }
         }
 
@@ -150,26 +139,18 @@ def configure_openapi_docs(app: FastAPI) -> None:
                             "application/json": {
                                 "example": {
                                     "simulation_data": [
-                                        {
-                                            "month": 0,
-                                            "locked": 1000000,
-                                            "vested": 0
-                                        },
-                                        {
-                                            "month": 1,
-                                            "locked": 950000,
-                                            "vested": 50000
-                                        }
+                                        {"month": 0, "locked": 1000000, "vested": 0},
+                                        {"month": 1, "locked": 950000, "vested": 50000},
                                     ],
-                                    "total_vested": 50000
+                                    "total_vested": 50000,
                                 }
                             }
-                        }
+                        },
                     },
                     "400": {"$ref": "#/components/schemas/HTTPError"},
                     "401": {"description": "Non authentifié"},
-                    "403": {"description": "Non autorisé"}
-                }
+                    "403": {"description": "Non autorisé"},
+                },
             }
         }
 
@@ -193,27 +174,19 @@ def configure_openapi_docs(app: FastAPI) -> None:
                             "application/json": {
                                 "example": {
                                     "simulation_data": [
-                                        {
-                                            "month": 0,
-                                            "staked": 0,
-                                            "rewards": 0
-                                        },
-                                        {
-                                            "month": 1,
-                                            "staked": 500000,
-                                            "rewards": 5000
-                                        }
+                                        {"month": 0, "staked": 0, "rewards": 0},
+                                        {"month": 1, "staked": 500000, "rewards": 5000},
                                     ],
                                     "total_staked": 500000,
-                                    "total_rewards": 5000
+                                    "total_rewards": 5000,
                                 }
                             }
-                        }
+                        },
                     },
                     "400": {"$ref": "#/components/schemas/HTTPError"},
                     "401": {"description": "Non authentifié"},
-                    "403": {"description": "Non autorisé"}
-                }
+                    "403": {"description": "Non autorisé"},
+                },
             }
         }
 
@@ -242,22 +215,22 @@ def configure_openapi_docs(app: FastAPI) -> None:
                                             "period": 0,
                                             "total_supply": 1000000,
                                             "circulating_supply": 900000,
-                                            "staked": 100000
+                                            "staked": 100000,
                                         }
                                     ],
                                     "summary": {
                                         "final_supply": 1100000,
                                         "total_minted": 150000,
-                                        "total_burned": 50000
-                                    }
+                                        "total_burned": 50000,
+                                    },
                                 }
                             }
-                        }
+                        },
                     },
                     "400": {"$ref": "#/components/schemas/HTTPError"},
                     "401": {"description": "Non authentifié"},
-                    "403": {"description": "Non autorisé"}
-                }
+                    "403": {"description": "Non autorisé"},
+                },
             }
         }
 
@@ -285,33 +258,33 @@ def configure_openapi_docs(app: FastAPI) -> None:
                                         {
                                             "name": "Conservative",
                                             "timeline": [],
-                                            "summary": {}
+                                            "summary": {},
                                         },
                                         {
                                             "name": "Aggressive",
                                             "timeline": [],
-                                            "summary": {}
-                                        }
+                                            "summary": {},
+                                        },
                                     ],
                                     "comparison_summary": {
                                         "supply_range": {
                                             "min": 1000000,
                                             "max": 1200000,
-                                            "avg": 1100000
+                                            "avg": 1100000,
                                         }
-                                    }
+                                    },
                                 }
                             }
-                        }
+                        },
                     },
                     "400": {"$ref": "#/components/schemas/HTTPError"},
                     "401": {"description": "Non authentifié"},
-                    "403": {"description": "Non autorisé"}
-                }
+                    "403": {"description": "Non autorisé"},
+                },
             }
         }
 
         app.openapi_schema = openapi_schema
         return app.openapi_schema
 
-    app.openapi = custom_openapi 
+    app.openapi = custom_openapi

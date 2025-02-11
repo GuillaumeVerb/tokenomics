@@ -1,11 +1,13 @@
 """
 Supply visualization utilities using Plotly.
 """
-from typing import List, Dict, Union, Optional
+
+from decimal import Decimal
+from typing import Dict, List, Optional, Union
+
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import numpy as np
-from decimal import Decimal
 
 
 def plot_supply_evolution(
@@ -17,11 +19,11 @@ def plot_supply_evolution(
     percentage_markers: List[float] = [0.5, 0.8],  # 50% and 80% markers
     custom_annotations: Optional[List[Dict]] = None,
     height: int = 600,
-    template: str = "plotly_white"
+    template: str = "plotly_white",
 ) -> Dict:
     """
     Create an interactive plot of token supply evolution with customizable annotations.
-    
+
     Args:
         data: List of dictionaries containing supply data points.
              Each dict should have 'month' and 'circulating_supply' keys.
@@ -37,10 +39,10 @@ def plot_supply_evolution(
             - color: (optional) annotation color
         height: Plot height in pixels
         template: Plotly template name (e.g., "plotly_white", "plotly_dark", "seaborn")
-    
+
     Returns:
         dict: Plotly figure as a dictionary, ready to be serialized to JSON
-        
+
     Example:
         >>> data = [
         ...     {"month": 0, "circulating_supply": 1000000},
@@ -61,24 +63,24 @@ def plot_supply_evolution(
         ... )
     """
     # Convert data to lists for plotting
-    months = [d['month'] for d in data]
-    supply = [float(d['circulating_supply']) for d in data]
-    
+    months = [d["month"] for d in data]
+    supply = [float(d["circulating_supply"]) for d in data]
+
     # Create the base figure
     fig = go.Figure()
-    
+
     # Add supply line
     fig.add_trace(
         go.Scatter(
             x=months,
             y=supply,
-            mode='lines',
-            name='Supply',
+            mode="lines",
+            name="Supply",
             line=dict(color=line_color, width=2),
-            hovertemplate="Month: %{x}<br>Supply: %{y:,.0f}<extra></extra>"
+            hovertemplate="Month: %{x}<br>Supply: %{y:,.0f}<extra></extra>",
         )
     )
-    
+
     # Add percentage markers if requested
     if show_percentage_markers and percentage_markers:
         max_supply = max(supply)
@@ -98,53 +100,42 @@ def plot_supply_evolution(
                         arrowcolor=annotation_color,
                         font=dict(color=annotation_color),
                         align="center",
-                        yshift=10
+                        yshift=10,
                     )
                     break
-    
+
     # Add custom annotations if provided
     if custom_annotations:
         for annotation in custom_annotations:
             fig.add_annotation(
-                x=annotation['x'],
-                y=annotation['y'],
-                text=annotation['text'],
+                x=annotation["x"],
+                y=annotation["y"],
+                text=annotation["text"],
                 showarrow=True,
                 arrowhead=2,
                 arrowsize=1,
                 arrowwidth=2,
-                arrowcolor=annotation.get('color', annotation_color),
-                font=dict(color=annotation.get('color', annotation_color)),
+                arrowcolor=annotation.get("color", annotation_color),
+                font=dict(color=annotation.get("color", annotation_color)),
                 align="center",
-                yshift=10
+                yshift=10,
             )
-    
+
     # Update layout
     fig.update_layout(
-        title=dict(
-            text=title,
-            x=0.5,
-            xanchor='center'
-        ),
-        xaxis=dict(
-            title="Month",
-            gridcolor='rgba(0,0,0,0.1)',
-            showgrid=True
-        ),
+        title=dict(text=title, x=0.5, xanchor="center"),
+        xaxis=dict(title="Month", gridcolor="rgba(0,0,0,0.1)", showgrid=True),
         yaxis=dict(
-            title="Supply",
-            gridcolor='rgba(0,0,0,0.1)',
-            showgrid=True,
-            tickformat=",d"
+            title="Supply", gridcolor="rgba(0,0,0,0.1)", showgrid=True, tickformat=",d"
         ),
         showlegend=False,
-        hovermode='x unified',
+        hovermode="x unified",
         height=height,
         template=template,
         margin=dict(l=50, r=50, t=80, b=50),
-        plot_bgcolor='white'
+        plot_bgcolor="white",
     )
-    
+
     # Add buttons for various interactions
     fig.update_layout(
         updatemenus=[
@@ -155,25 +146,25 @@ def plot_supply_evolution(
                     dict(
                         label="Reset Zoom",
                         method="relayout",
-                        args=[{"xaxis.range": [min(months), max(months)],
-                              "yaxis.range": [0, max(supply) * 1.1]}]
+                        args=[
+                            {
+                                "xaxis.range": [min(months), max(months)],
+                                "yaxis.range": [0, max(supply) * 1.1],
+                            }
+                        ],
                     )
                 ],
                 x=0.05,
                 y=1.1,
-                xanchor='left',
-                yanchor='top'
+                xanchor="left",
+                yanchor="top",
             )
         ]
     )
-    
+
     # Enable responsive behavior
     fig.update_layout(
-        autosize=True,
-        modebar=dict(
-            orientation='v',
-            bgcolor='rgba(0,0,0,0)'
-        )
+        autosize=True, modebar=dict(orientation="v", bgcolor="rgba(0,0,0,0)")
     )
-    
-    return fig.to_dict()  # Return as dict for easy JSON serialization 
+
+    return fig.to_dict()  # Return as dict for easy JSON serialization

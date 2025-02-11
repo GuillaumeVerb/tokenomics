@@ -8,4 +8,4 @@ cg = CoinGeckoAPI(api_key=settings.COINGECKO_API_KEY)
 
 # Initialize MongoDB client
 mongo_client = MongoClient(settings.MONGODB_URL)
-mongo_db = mongo_client[settings.MONGODB_DB_NAME] 
+mongo_db = mongo_client[settings.MONGODB_DB_NAME]

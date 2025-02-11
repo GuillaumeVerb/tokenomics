@@ -1,9 +1,10 @@
 from typing import Optional
 
-from app.core.config import settings
-from app.core.logger import logger
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+
+from app.core.config import settings
+from app.core.logger import logger
 
 
 class SlackService:
@@ -27,11 +28,11 @@ class SlackService:
     async def send_message(self, channel: str, text: str) -> bool:
         """
         Send a message to a Slack channel
-        
+
         Args:
             channel: The channel to send the message to (e.g. "#general")
             text: The message text
-            
+
         Returns:
             bool: True if message was sent successfully, False otherwise
         """
@@ -48,10 +49,10 @@ class SlackService:
     async def send_notification(self, message: str) -> bool:
         """
         Send a notification to the default notification channel
-        
+
         Args:
             message: The notification message
-            
+
         Returns:
             bool: True if notification was sent successfully, False otherwise
         """
@@ -61,4 +62,4 @@ class SlackService:
 
 
 # Create a global instance of the Slack service
-slack_service = SlackService() 
+slack_service = SlackService()
