@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, Field, validator
 
@@ -27,7 +27,7 @@ class ShockEvent(BaseModel):
     value: float = Field(
         ..., description="Valeur de l'impact (ex: 0.3 pour 30%)", ge=0, le=1
     )
-    description: str | None = Field(
+    description: Optional[str] = Field(
         default=None, description="Description optionnelle de l'événement"
     )
 
@@ -44,7 +44,7 @@ class ShockEvent(BaseModel):
         """Convertit le time_step en mois"""
         return self.time_step * (12 if self.time_unit == TimeUnit.YEAR else 1)
 
-    def apply_event(self, supply: float) -> tuple[float, str]:
+    def apply_event(self, supply: float) -> Tuple[float, str]:
         """Applique l'événement et retourne (nouveau_supply, message_log)"""
         if self.event_type == EventType.MASS_BURN:
             new_supply = supply * (1 - self.value)

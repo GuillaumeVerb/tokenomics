@@ -1,9 +1,19 @@
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 from .base import BaseTokenomicsModel
+
+
+class SimulationParams(BaseModel):
+    """Parameters for tokenomics simulation."""
+    initial_supply: float = Field(..., description="Initial token supply", gt=0)
+    initial_price: float = Field(..., description="Initial token price", gt=0)
+    initial_liquidity: float = Field(..., description="Initial liquidity ratio", gt=0, le=1)
+    simulation_months: int = Field(..., description="Duration of simulation in months", gt=0)
+    monthly_inflation: float = Field(..., description="Monthly inflation rate", ge=0, le=1)
+    vesting_period: int = Field(..., description="Vesting period in months", ge=0)
 
 
 class TokenPoint(BaseTokenomicsModel):
