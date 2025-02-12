@@ -1,61 +1,49 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { SimulationResults } from '../types/simulation';
 
-interface SimulationState {
-  currentSimulationId: string | null;
-  progress: number;
-  results: SimulationResults | null;
+export interface SimulationState {
+  isSimulating: boolean;
+  currentStep: number;
   error: string | null;
-  isLoading: boolean;
 }
 
 const initialState: SimulationState = {
-  currentSimulationId: null,
-  progress: 0,
-  results: null,
+  isSimulating: false,
+  currentStep: 0,
   error: null,
-  isLoading: false
 };
 
-const simulationSlice = createSlice({
+export const simulationSlice = createSlice({
   name: 'simulation',
   initialState,
   reducers: {
-    startSimulation: (state, action: PayloadAction<string>) => {
-      state.currentSimulationId = action.payload;
-      state.isLoading = true;
-      state.progress = 0;
+    startSimulation: (state) => {
+      state.isSimulating = true;
       state.error = null;
     },
-    updateSimulationProgress: (state, action: PayloadAction<number>) => {
-      state.progress = action.payload;
+    stopSimulation: (state) => {
+      state.isSimulating = false;
     },
-    updateSimulationData: (state, action: PayloadAction<SimulationResults>) => {
-      state.results = action.payload;
-      if (state.progress === 100) {
-        state.isLoading = false;
-      }
+    setStep: (state, action: PayloadAction<number>) => {
+      state.currentStep = action.payload;
     },
-    setSimulationError: (state, action: PayloadAction<string>) => {
+    setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
-      state.isLoading = false;
+      state.isSimulating = false;
     },
     resetSimulation: (state) => {
-      state.currentSimulationId = null;
-      state.progress = 0;
-      state.results = null;
+      state.isSimulating = false;
+      state.currentStep = 0;
       state.error = null;
-      state.isLoading = false;
-    }
-  }
+    },
+  },
 });
 
 export const {
   startSimulation,
-  updateSimulationProgress,
-  updateSimulationData,
-  setSimulationError,
-  resetSimulation
+  stopSimulation,
+  setStep,
+  setError,
+  resetSimulation,
 } = simulationSlice.actions;
 
 export default simulationSlice.reducer;
