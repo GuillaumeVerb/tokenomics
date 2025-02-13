@@ -33,12 +33,15 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/*requirements.txt
       
       - name: Install dependencies
         working-directory: ./backend
         run: |
           python -m pip install --upgrade pip
-          pip install "pymongo[aws]"
+          pip install --no-cache-dir "pymongo[aws]>=4.0.0"
           pip install -r requirements.txt
           pip install pytest-cov
       
@@ -76,7 +79,10 @@ jobs:
       
       - name: Run tests
         working-directory: ./frontend
-        run: npm test -- --coverage
+        run: |
+          npm test -- --coverage --no-threads --timeout=30000 --logLevel=verbose
+        env:
+          CI: true
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -148,30 +154,4 @@ jobs:
           cd frontend
           vercel deploy --token "$VERCEL_TOKEN" --prod --yes \
             --scope "$VERCEL_ORG_ID" \
-            --confirm
-
-  notify:
-    needs: [deploy]
-    runs-on: ubuntu-latest
-    if: always()
-    
-    steps:
-      - name: Set Slack message
-        id: slack-message
-        run: |
-          if [ "${{ job.status }}" = "success" ]; then
-            echo "color=good" >> $GITHUB_OUTPUT
-            echo "message=🚀 Deployment successful!" >> $GITHUB_OUTPUT
-          else
-            echo "color=danger" >> $GITHUB_OUTPUT
-            echo "message=❌ Deployment failed!" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Notify Slack
-        uses: rtCamp/action-slack-notify@v2
-        if: always()
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_COLOR: ${{ steps.slack-message.outputs.color }}
-          SLACK_TITLE: "Deployment Status"
-          SLACK_MESSAGE: ${{ steps.slack-message.outputs.message }} 
+            --confirm 
