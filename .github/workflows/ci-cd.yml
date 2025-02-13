@@ -54,7 +54,8 @@ jobs:
         run: |
           source .venv/bin/activate
           python -m pip install --upgrade pip setuptools wheel
-          python -m pip install -r requirements-test.txt
+          python -m pip install --no-cache-dir numpy==1.26.2
+          python -m pip install --no-cache-dir -r requirements-test.txt
       
       - name: Run tests with coverage
         working-directory: ./backend
@@ -62,11 +63,12 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017/test
           JWT_SECRET: test_secret
           ENVIRONMENT: test
-          PYTHONPATH: ${GITHUB_WORKSPACE}/backend
+          PYTHONPATH: ${GITHUB_WORKSPACE}/backend:${PYTHONPATH:-}
           MONGODB_AUTH_MECHANISM: SCRAM-SHA-1
           MONGODB_AUTH_SOURCE: test
         run: |
           source .venv/bin/activate
+          cd ${GITHUB_WORKSPACE}/backend
           python -m pytest --cov=app --cov-report=xml -v
       
       - name: Upload coverage to Codecov
@@ -95,7 +97,7 @@ jobs:
       - name: Run tests
         working-directory: ./frontend
         run: |
-          npm test -- --coverage --pool=vmThreads --poolOptions.threads.singleThread --logLevel=verbose --testTimeout=30000
+          npm test -- --coverage --pool=vmThreads --poolOptions.threads.singleThread --reporter=verbose
         env:
           CI: true
       
