@@ -3,6 +3,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import jwt
 import pytest
@@ -31,17 +32,21 @@ os.environ.setdefault("TESTING", "True")
 # Set the env file path for testing
 os.environ["ENV_FILE"] = str(ROOT_DIR / ".env.test")
 
-# Import app and settings after path setup
-from app import create_app  # noqa: E402
+# Mock MongoDB before importing app
+sys.modules["pymongo"] = MagicMock()
+sys.modules["pymongo.collection"] = MagicMock()
+sys.modules["pymongo.database"] = MagicMock()
+sys.modules["pymongo.mongo_client"] = MagicMock()
+
+# Import app and settings after mocking
 from app.core.config import Settings  # noqa: E402
 from app.main import app  # noqa: E402
-
 
 @pytest.fixture
 def test_settings():
     """Test settings with a test database and JWT secret."""
     return Settings(
-        _env_file=".env.test",  # Use test environment file
+        _env_file=".env.test",
         ENVIRONMENT="test",
         DEBUG=True,
         JWT_SECRET="test-secret",
@@ -52,10 +57,24 @@ def test_settings():
     )
 
 @pytest.fixture
-def app(test_settings):
-    """Create a test FastAPI application."""
+def mock_mongodb():
+    """Create a mock MongoDB client."""
+    mock_client = MagicMock()
+    mock_db = MagicMock()
+    mock_collection = MagicMock()
+    
+    mock_client.__getitem__.return_value = mock_db
+    mock_db.__getitem__.return_value = mock_collection
+    
+    return mock_client
+
+@pytest.fixture
+def app(test_settings, mock_mongodb):
+    """Create a test FastAPI application with mocked MongoDB."""
+    from app import create_app
     app = create_app()
     app.state.settings = test_settings
+    app.state.mongodb = mock_mongodb
     return app
 
 @pytest.fixture
