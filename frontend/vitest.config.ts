@@ -8,10 +8,12 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
-    pool: 'vmThreads',
+    pool: 'threads',
     poolOptions: {
-      vmThreads: {
-        singleThread: true
+      threads: {
+        useAtomics: true,
+        maxThreads: 1,
+        minThreads: 1
       }
     },
     coverage: {
