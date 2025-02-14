@@ -46,7 +46,9 @@ jobs:
         shell: bash -l {0}
         working-directory: ./backend
         run: |
-          conda install -y numpy==1.26.2 pandas==2.1.3 scikit-learn==1.3.2 prophet==1.1.4
+          cd ${GITHUB_WORKSPACE}/backend
+          conda install -y numpy==1.26.2 pandas==2.1.3 scikit-learn==1.3.2
+          conda install -y -c conda-forge prophet==1.1.4
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install -r requirements-test.txt
       
@@ -57,12 +59,13 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017/test
           JWT_SECRET: test_secret
           ENVIRONMENT: test
-          PYTHONPATH: ${GITHUB_WORKSPACE}/backend:${PYTHONPATH:-}
+          PYTHONPATH: ${GITHUB_WORKSPACE}/backend
           MONGODB_AUTH_MECHANISM: SCRAM-SHA-1
           MONGODB_AUTH_SOURCE: test
+          PYTHONNOUSERSITE: 1
         run: |
-          cd ${GITHUB_WORKSPACE}/backend
-          python -m pytest --cov=app --cov-report=xml -v
+          cd ${GITHUB_WORKSPACE}
+          python -m pytest backend/tests --cov=backend/app --cov-report=xml -v
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -85,14 +88,20 @@ jobs:
       
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: |
+          npm ci
+          npm list vitest
+          npm list @vitest/coverage-c8
       
       - name: Run tests
         working-directory: ./frontend
         run: |
-          npm test -- --coverage --pool=vmThreads --poolOptions.threads.singleThread --reporter=verbose
+          npm run test:ci
         env:
           CI: true
+          DEBUG: "vite:*"
+          NODE_ENV: test
+          NODE_OPTIONS: "--max-old-space-size=4096"
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
