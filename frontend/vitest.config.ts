@@ -8,13 +8,14 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
-    pool: 'threads',
+    pool: 'forks',
     poolOptions: {
-      threads: {
-        useAtomics: true,
-        maxThreads: 1,
-        minThreads: 1
+      forks: {
+        singleFork: true
       }
+    },
+    deps: {
+      inline: ['@testing-library/jest-dom']
     },
     coverage: {
       provider: 'v8',
