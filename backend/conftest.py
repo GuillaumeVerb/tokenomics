@@ -5,42 +5,35 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock
 
-import jwt
-import pytest
-from fastapi.testclient import TestClient
-
 # Get the absolute path of the project root
 ROOT_DIR = Path(__file__).resolve().parent
 APP_DIR = ROOT_DIR / "app"
 TESTS_DIR = ROOT_DIR / "tests"
 
-# Add directories to Python path
-sys.path.insert(0, str(ROOT_DIR))
-sys.path.insert(0, str(APP_DIR))
-sys.path.insert(0, str(TESTS_DIR))
-
-# Add the virtual environment site-packages to Python path
-VENV_DIR = ROOT_DIR / "venv"
-if VENV_DIR.exists():
-    SITE_PACKAGES = list(VENV_DIR.glob("lib/python3.*/site-packages"))[0]
-    sys.path.insert(0, str(SITE_PACKAGES))
-
 # Set environment variables for testing
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ.setdefault("TESTING", "True")
-
-# Set the env file path for testing
 os.environ["ENV_FILE"] = str(ROOT_DIR / ".env.test")
 
-# Mock MongoDB before importing app
+# Mock MongoDB and numpy before any other imports
 sys.modules["pymongo"] = MagicMock()
 sys.modules["pymongo.collection"] = MagicMock()
 sys.modules["pymongo.database"] = MagicMock()
 sys.modules["pymongo.mongo_client"] = MagicMock()
 
-# Import app and settings after mocking
+# Configure Python path
+sys.path.insert(0, str(ROOT_DIR))
+sys.path.insert(0, str(APP_DIR))
+sys.path.insert(0, str(TESTS_DIR))
+
+# Import test dependencies
+import pytest
+import jwt
+from fastapi.testclient import TestClient
+
+# Import app and settings after path configuration
 from app.core.config import Settings  # noqa: E402
-from app.main import app  # noqa: E402
+from app import create_app  # noqa: E402
 
 @pytest.fixture
 def test_settings():
@@ -71,7 +64,6 @@ def mock_mongodb():
 @pytest.fixture
 def app(test_settings, mock_mongodb):
     """Create a test FastAPI application with mocked MongoDB."""
-    from app import create_app
     app = create_app()
     app.state.settings = test_settings
     app.state.mongodb = mock_mongodb

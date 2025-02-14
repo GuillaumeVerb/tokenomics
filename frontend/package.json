@@ -12,7 +12,7 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest watch",
-    "test:ci": "vitest run --no-threads"
+    "test:ci": "vitest run"
   },
   "keywords": [],
   "author": "",
