@@ -8,8 +8,12 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
-    threads: false,
-    isolate: false,
+    pool: 'vmThreads',
+    poolOptions: {
+      vmThreads: {
+        singleThread: true
+      }
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
