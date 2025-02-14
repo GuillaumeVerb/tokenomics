@@ -1,6 +1,5 @@
 import postcssPresetEnv from 'postcss-preset-env'
 import tailwindcss from 'tailwindcss'
-import tailwindNesting from 'tailwindcss/nesting'
 import autoprefixer from 'autoprefixer'
 import postcssImport from 'postcss-import'
 import cssnano from 'cssnano'
@@ -8,7 +7,6 @@ import cssnano from 'cssnano'
 export default {
   plugins: [
     postcssImport,
-    tailwindNesting,
     tailwindcss,
     postcssPresetEnv({
       stage: 1,
