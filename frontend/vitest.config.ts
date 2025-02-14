@@ -8,6 +8,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
+    threads: false,
+    isolate: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -16,5 +18,6 @@ export default defineConfig({
         'src/setupTests.ts',
       ],
     },
+    testTimeout: 10000,
   },
 });

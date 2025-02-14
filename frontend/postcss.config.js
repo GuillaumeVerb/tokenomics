@@ -1,10 +1,15 @@
-const postcssPresetEnv = require('postcss-preset-env')
+import postcssPresetEnv from 'postcss-preset-env'
+import tailwindcss from 'tailwindcss'
+import tailwindNesting from 'tailwindcss/nesting'
+import autoprefixer from 'autoprefixer'
+import postcssImport from 'postcss-import'
+import cssnano from 'cssnano'
 
-module.exports = {
+export default {
   plugins: [
-    require('postcss-import'),
-    require('tailwindcss/nesting'),
-    require('tailwindcss'),
+    postcssImport,
+    tailwindNesting,
+    tailwindcss,
     postcssPresetEnv({
       stage: 1,
       features: {
@@ -13,7 +18,7 @@ module.exports = {
         'custom-media-queries': true,
       }
     }),
-    require('autoprefixer'),
-    ...(process.env.NODE_ENV === 'production' ? [require('cssnano')] : [])
+    autoprefixer,
+    ...(process.env.NODE_ENV === 'production' ? [cssnano] : [])
   ]
-} 
+}
