@@ -93,13 +93,17 @@ jobs:
       - name: Install dependencies
         working-directory: ./frontend
         run: |
-          npm ci
+          npm install
           npm install -D postcss@^8.4.31 postcss-import@^15.1.0 postcss-preset-env@^9.3.0 autoprefixer@^10.4.16 cssnano@^6.0.1 @testing-library/jest-dom@latest
           npm install @tanstack/react-query@^5.0.0 @tanstack/query-core@^5.0.0
+          npm ls @tanstack/react-query @tanstack/query-core
       
       - name: Run tests
         working-directory: ./frontend
         run: |
+          echo "Node version: $(node -v)"
+          echo "NPM version: $(npm -v)"
+          echo "Testing environment setup..."
           npm run test:ci
         env:
           CI: true
